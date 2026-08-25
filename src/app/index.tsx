@@ -1,140 +1,168 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Fonts, Spacing } from '@/constants/theme';
+// Paleta de Cores inspirada na interface (Dark Theme + Verde Duolingo)
+const BACKGROUND = '#1E232A';
+const CARD_BG = '#2A303C';
+const CODE_BG = '#191D24';
+const ACCENT_GREEN = '#10B981';
+const ACCENT_GREEN_DARK = '#059669';
+const TEXT_PRIMARY = '#F3F4F6';
+const TEXT_SECONDARY = '#9CA3AF';
+const CODE_YELLOW = '#F59E0B';
+const CODE_BLUE = '#60A5FA';
+const CODE_COMMENT = '#6B7280';
+const BLANK_BORDER = '#10B981';
 
-const BACKGROUND = '#1A1D22';
-const PANEL = '#23272F';
-const PANEL_DARK = '#101216';
-const PAPER = '#FFF9F0';
-const PAPER_LINE = '#FFE1BC';
-const ORANGE = '#FF9600';
-const ORANGE_DARK = '#E07F00';
-const ORANGE_LIGHT = '#FFC266';
-const INK = '#3A3A3A';
-const WHITE = '#FFFFFF';
-
-const CODE_LINES = [
-  { head: 'from pyspark.sql import SparkSession', tail: '' },
-  { head: 'spark = SparkSession.builder.appName("sparklab").getOrCreate()', tail: '' },
-  { head: 'df = spark.read.csv("data/usuarios.csv", header=True, inferSchema=True)', tail: '' },
-  { head: 'df.show()', tail: '  # display' },
-  { head: 'df.printSchema()', tail: '  # schema' },
+// Palavras de opção para o usuário selecionar
+const INITIAL_OPTIONS = [
+  'header',
+  'inferSchema',
+  'schema',
+  'path',
+  'infer',
+  'load',
+  'save',
+  'options',
+  '/user/data/sales.csv',
 ];
 
-const TABLE = {
-  columns: ['id', 'nome', 'cargo', 'salario'],
-  rows: [
-    ['1', 'Ana Souza', 'Engenheiro de Dados', 'R$ 9.200'],
-    ['2', 'Bruno Lima', 'Analista de Dados', 'R$ 5.800'],
-  ],
-};
+export default function SparkExerciseScreen() {
+  const [selectedSlots, setSelectedSlots] = useState< Record<number, string | null> >({
+    0: null, // Slot 1: Path
+    1: null, // Slot 2: Option Key (inferSchema)
+    2: null, // Slot 3: Method (load)
+  });
 
-function NotebookRing() {
-  return <View style={styles.ring} />;
-}
+  const [availableOptions, setAvailableOptions] = useState<string[]>(INITIAL_OPTIONS);
 
-function TableCell({ value, isHeader }: { value: string; isHeader?: boolean }) {
-  return (
-    <Text style={[styles.cellText, isHeader && styles.cellHeaderText]} numberOfLines={1}>
-      {value}
-    </Text>
-  );
-}
+  const handleSelectOption = (option: string) => {
+    // Encontra o primeiro slot vazio e preenche
+    const firstEmptyIndex = [0, 1, 2].find((idx) => selectedSlots[idx] === null);
+    if (firstEmptyIndex !== undefined) {
+      setSelectedSlots((prev) => ({ ...prev, [firstEmptyIndex]: option }));
+      setAvailableOptions((prev) => prev.filter((item) => item !== option));
+    }
+  };
 
-function DataRow({ values, isHeader }: { values: string[]; isHeader?: boolean }) {
-  return (
-    <View style={[styles.tableRow, isHeader && styles.tableHeaderRow]}>
-      {values.map((value, index) => (
-        <TableCell key={index} value={value} isHeader={isHeader} />
-      ))}
-    </View>
-  );
-}
+  const handleRemoveSlot = (slotIndex: number) => {
+    const itemToRemove = selectedSlots[slotIndex];
+    if (itemToRemove) {
+      setSelectedSlots((prev) => ({ ...prev, [slotIndex]: null }));
+      setAvailableOptions((prev) => [...prev, itemToRemove]);
+    }
+  };
 
-function Notebook() {
-  return (
-    <View style={styles.notebook}>
-      <View style={styles.notebookHeader}>
-        <Text style={styles.notebookTitle} numberOfLines={1}>
-          sparklab · leitura de arquivo
-        </Text>
-        <View style={styles.windowDot} />
-      </View>
-
-      <View style={styles.notebookBody}>
-        <View style={styles.gutter}>
-          <NotebookRing />
-          <NotebookRing />
-          <NotebookRing />
-          <NotebookRing />
-          <NotebookRing />
-          <NotebookRing />
-          <NotebookRing />
-        </View>
-
-        <ScrollView style={styles.page} showsVerticalScrollIndicator={false}>
-          <Text style={styles.filePrompt}>$ head -3 data/usuarios.csv</Text>
-          <View style={styles.tableCard}>
-            <DataRow values={TABLE.columns} isHeader />
-            {TABLE.rows.map((row, index) => (
-              <DataRow key={index} values={row} />
-            ))}
-          </View>
-          <Text style={styles.filePrompt}>$ wc -l data/usuarios.csv</Text>
-          <View style={styles.resultLine}>
-            <Text style={styles.resultNumber}>4</Text>
-            <Text style={styles.resultLabel}>linhas carregadas · pronto para o Spark</Text>
-          </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.notebookFooter} />
-    </View>
-  );
-}
-
-function CommandsPanel() {
-  return (
-    <View style={styles.commands}>
-      <View style={styles.commandsTitleRow}>
-        <View style={styles.commandsBadge}>
-          <Text style={styles.commandsBadgeText}>pyspark</Text>
-        </View>
-        <Text style={styles.commandsTitle}>Comandos necessários</Text>
-      </View>
-
-      <View style={styles.codeBlock}>
-        {CODE_LINES.map((item, index) => (
-          <View key={index} style={styles.codeRow}>
-            <Text style={styles.codePrompt}>›</Text>
-            <Text style={[styles.codeText, index === 0 && styles.codeTextHead]}>
-              {item.head}
-              {item.tail ? <Text style={styles.codeComment}>{item.tail}</Text> : null}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.runButton}>
-        <Text style={styles.runButtonText}>Executar teste</Text>
-      </View>
-    </View>
-  );
-}
-
-export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.appTitle}>SparkLab</Text>
-          <Text style={styles.appSubtitle}>exercícios de spark · engenharia de dados</Text>
+        {/* Header / Barra de Status */}
+        <View style={styles.statusBar}>
+          <Text style={styles.statusText}>🔥 15 dias</Text>
+          <Text style={styles.statusText}>💎 500</Text>
+          <View style={styles.levelBadge}>
+            <Text style={styles.levelText}>NÍVEL 1</Text>
+          </View>
         </View>
 
-        <Notebook />
+        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Instruções do Exercício */}
+          <View style={styles.instructionCard}>
+            <Text style={styles.instructionText}>
+              Complete o código para carregar um arquivo CSV do HDFS para um DataFrame. O arquivo
+              está em <Text style={styles.highlightText}>'/user/data/sales.csv'</Text>, tem cabeçalho
+              e usa delimitador ';'. O esquema deve ser inferido.
+            </Text>
+          </View>
 
-        <CommandsPanel />
+          {/* Card do Código (Notebook Style) */}
+          <View style={styles.codeContainer}>
+            <Text style={styles.codeComment}>
+              # Definição das opções{'\n'}
+              <Text style={{ color: CODE_YELLOW }}>spark</Text> = SparkSession.builder.appName("CSV Reader").getOrCreate()
+            </Text>
+
+            <View style={styles.codeBlock}>
+              <Text style={styles.codeLine}>
+                <Text style={{ color: CODE_YELLOW }}>opts</Text> = {'{\n'}
+                {'  '}<Text style={{ color: CODE_BLUE }}>'header'</Text>: 'true',{'\n'}
+                {'  '}<Text style={{ color: CODE_BLUE }}>'delimiter'</Text>: ';'{'\n'}
+                {'}'}
+              </Text>
+
+              <Text style={styles.codeComment}>{'\n'}# Código Spark a completar:</Text>
+              
+              <Text style={styles.codeLine}>
+                <Text style={{ color: CODE_YELLOW }}>df</Text> = ({'\n'}
+                {'  '}spark{'\n'}
+                {'  '}.read{'\n'}
+                {'  '}.format(<Text style={{ color: CODE_BLUE }}>"csv"</Text>){'\n'}
+                {'  '}.options(**opts){'\n'}
+                {'  '}.option(<Text style={{ color: CODE_BLUE }}>"path"</Text>, "
+                
+                {/* Slot 1: Path */}
+                <TouchableOpacity
+                  style={styles.inlineBlank}
+                  onPress={() => handleRemoveSlot(0)}>
+                  <Text style={styles.blankText}>{selectedSlots[0] || '           '}</Text>
+                </TouchableOpacity>
+                ")
+              </Text>
+
+              <Text style={styles.codeLine}>
+                {'  '}.option("
+                
+                {/* Slot 2: inferSchema */}
+                <TouchableOpacity
+                  style={styles.inlineBlank}
+                  onPress={() => handleRemoveSlot(1)}>
+                  <Text style={styles.blankText}>{selectedSlots[1] || '       '}</Text>
+                </TouchableOpacity>
+                ", <Text style={{ color: CODE_BLUE }}>"true"</Text>)
+              </Text>
+
+              <Text style={styles.codeLine}>
+                {'  '}.
+                
+                {/* Slot 3: load */}
+                <TouchableOpacity
+                  style={styles.inlineBlank}
+                  onPress={() => handleRemoveSlot(2)}>
+                  <Text style={styles.blankText}>{selectedSlots[2] || '   '}</Text>
+                </TouchableOpacity>
+                ()
+              </Text>
+
+              <Text style={styles.codeLine}>)</Text>
+            </View>
+          </View>
+
+          {/* Grade de Botões de Opção */}
+          <View style={styles.optionsContainer}>
+            {availableOptions.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.optionChip}
+                onPress={() => handleSelectOption(option)}>
+                <Text style={styles.optionChipText}>[{option}]</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {/* Botão Inferior de Verificação */}
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.verifyButton}>
+            <Text style={styles.verifyButtonText}>VERIFICAR</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -147,218 +175,130 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.two,
-    gap: Spacing.three,
   },
-  header: {
-    gap: Spacing.one,
-  },
-  appTitle: {
-    color: WHITE,
-    fontSize: 26,
-    fontWeight: 800,
-    letterSpacing: 0.5,
-  },
-  appSubtitle: {
-    color: ORANGE_LIGHT,
-    fontSize: 13,
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-
-  notebook: {
-    flex: 7,
-    backgroundColor: PAPER,
-    borderWidth: 4,
-    borderColor: ORANGE,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  notebookHeader: {
+  statusBar: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: ORANGE,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  notebookTitle: {
-    color: WHITE,
-    fontFamily: Fonts.mono,
-    fontSize: 13,
-    fontWeight: 700,
-  },
-  windowDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: PAPER,
-    borderWidth: 2,
-    borderColor: ORANGE_DARK,
-  },
-  notebookBody: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-  gutter: {
-    width: 22,
     alignItems: 'center',
-    justifyContent: 'space-evenly',
-    borderRightWidth: 1,
-    borderRightColor: PAPER_LINE,
-  },
-  ring: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    borderWidth: 3,
-    borderColor: ORANGE_DARK,
-    backgroundColor: PAPER,
-  },
-  page: {
-    flex: 1,
-    padding: Spacing.three,
-  },
-  filePrompt: {
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: 700,
-    color: ORANGE_DARK,
-    marginBottom: Spacing.two,
-  },
-  tableCard: {
-    backgroundColor: WHITE,
-    borderWidth: 2,
-    borderColor: PAPER_LINE,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: Spacing.three,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#16191E',
     borderBottomWidth: 1,
-    borderBottomColor: PAPER_LINE,
+    borderBottomColor: '#2D3748',
   },
-  tableHeaderRow: {
-    backgroundColor: ORANGE_LIGHT,
+  statusText: {
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    fontWeight: '700',
   },
-  cellText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: 600,
-    color: INK,
-    fontFamily: Fonts.mono,
-  },
-  cellHeaderText: {
-    color: '#7A4A00',
-    fontWeight: 800,
-  },
-  resultLine: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: Spacing.two,
-    backgroundColor: '#FFF3DC',
-    borderRadius: 10,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-  },
-  resultNumber: {
-    fontFamily: Fonts.mono,
-    fontSize: 20,
-    fontWeight: 800,
-    color: ORANGE_DARK,
-  },
-  resultLabel: {
-    fontSize: 13,
-    fontWeight: 600,
-    color: INK,
-  },
-  notebookFooter: {
-    height: 6,
-    backgroundColor: ORANGE,
-  },
-
-  commands: {
-    flex: 3,
-    backgroundColor: PANEL,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: ORANGE_DARK,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  commandsTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  commandsBadge: {
-    backgroundColor: ORANGE,
+  levelBadge: {
+    backgroundColor: ACCENT_GREEN_DARK,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 6,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: 2,
   },
-  commandsBadgeText: {
-    color: WHITE,
+  levelText: {
+    color: TEXT_PRIMARY,
     fontSize: 11,
-    fontWeight: 800,
-    textTransform: 'uppercase',
+    fontWeight: '800',
   },
-  commandsTitle: {
-    color: WHITE,
-    fontSize: 15,
-    fontWeight: 700,
+  container: {
+    padding: 16,
+    gap: 16,
+  },
+  instructionCard: {
+    backgroundColor: CARD_BG,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  instructionText: {
+    color: TEXT_PRIMARY,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  highlightText: {
+    color: CODE_YELLOW,
+    fontWeight: '600',
+  },
+  codeContainer: {
+    backgroundColor: CODE_BG,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#374151',
   },
   codeBlock: {
-    flex: 1,
-    backgroundColor: PANEL_DARK,
-    borderRadius: 12,
-    padding: Spacing.two,
-    justifyContent: 'center',
+    marginTop: 8,
   },
-  codeRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  codePrompt: {
-    color: ORANGE,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
-    fontWeight: 700,
-    marginRight: Spacing.one,
-  },
-  codeText: {
-    flex: 1,
-    color: '#E8E6E1',
-    fontFamily: Fonts.mono,
-    fontSize: 11,
-    lineHeight: 18,
-  },
-  codeTextHead: {
-    color: ORANGE_LIGHT,
-    fontWeight: 700,
+  codeLine: {
+    fontFamily: 'monospace',
+    color: TEXT_PRIMARY,
+    fontSize: 13,
+    lineHeight: 22,
   },
   codeComment: {
-    color: '#7E8AA0',
+    fontFamily: 'monospace',
+    color: CODE_COMMENT,
+    fontSize: 12,
   },
-  runButton: {
-    backgroundColor: ORANGE,
-    borderRadius: 14,
+  inlineBlank: {
+    borderWidth: 1.5,
+    borderColor: BLANK_BORDER,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    backgroundColor: '#0D1117',
+    alignSelf: 'center',
+  },
+  blankText: {
+    color: ACCENT_GREEN,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  optionChip: {
+    backgroundColor: CARD_BG,
+    borderWidth: 1,
+    borderColor: '#4B5563',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  optionChipText: {
+    color: TEXT_PRIMARY,
+    fontFamily: 'monospace',
+    fontSize: 13,
+  },
+  footer: {
+    padding: 16,
+    backgroundColor: BACKGROUND,
+    borderTopWidth: 1,
+    borderTopColor: '#2D3748',
+  },
+  verifyButton: {
+    backgroundColor: ACCENT_GREEN,
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
-    paddingVertical: Spacing.two,
-    borderWidth: 3,
-    borderBottomWidth: 6,
-    borderColor: ORANGE_DARK,
+    shadowColor: ACCENT_GREEN_DARK,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 0,
+    elevation: 4,
   },
-  runButtonText: {
-    color: WHITE,
-    fontSize: 15,
-    fontWeight: 800,
-    letterSpacing: 0.5,
+  verifyButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.8,
   },
 });
