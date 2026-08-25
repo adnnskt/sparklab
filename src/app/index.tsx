@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Paleta de Cores inspirada na interface (Dark Theme + Verde Duolingo)
+// Paleta de Cores — Dark Theme + Laranja Spark (escolhas/botão) + Verde (input)
 const BACKGROUND = '#1E232A';
 const CARD_BG = '#2A303C';
 const CODE_BG = '#191D24';
 const ACCENT_GREEN = '#10B981';
 const ACCENT_GREEN_DARK = '#059669';
+const ACCENT_ORANGE = '#FF9600';
+const ACCENT_ORANGE_DARK = '#E07F00';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const CODE_YELLOW = '#F59E0B';
@@ -267,16 +269,17 @@ const styles = StyleSheet.create({
   },
   optionChip: {
     backgroundColor: CARD_BG,
-    borderWidth: 1,
-    borderColor: '#4B5563',
+    borderWidth: 1.5,
+    borderColor: ACCENT_ORANGE,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   optionChipText: {
-    color: TEXT_PRIMARY,
+    color: ACCENT_ORANGE,
     fontFamily: 'monospace',
     fontSize: 13,
+    fontWeight: '700',
   },
   footer: {
     padding: 16,
@@ -285,11 +288,11 @@ const styles = StyleSheet.create({
     borderTopColor: '#2D3748',
   },
   verifyButton: {
-    backgroundColor: ACCENT_GREEN,
+    backgroundColor: ACCENT_ORANGE,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: ACCENT_GREEN_DARK,
+    shadowColor: ACCENT_ORANGE_DARK,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 0,
