@@ -1,5 +1,6 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Mapeamento dos módulos da trilha com ícones vetoriais limpos
 const SKILL_TREE = [
@@ -45,7 +46,57 @@ function SkillNode({ node }) {
   );
 }
 
+export default function HomeScreen() {
+  return (
+    <View style={styles.screen}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>SparkLab</Text>
+            <Text style={styles.headerSubtitle}>trilha de spark</Text>
+          </View>
+          <View style={styles.skillTree}>
+            {SKILL_TREE.map((node) => (
+              <SkillNode key={node.id} node={node} />
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#1A1D22',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '800',
+  },
+  headerSubtitle: {
+    color: '#FF9600',
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  skillTree: {
+    alignItems: 'center',
+  },
   nodeWrapper: {
     alignItems: 'center',
     marginVertical: 16,
