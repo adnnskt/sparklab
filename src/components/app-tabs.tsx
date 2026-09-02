@@ -41,6 +41,15 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="matching"
+        options={{
+          title: 'Matching',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="git-merge" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,
