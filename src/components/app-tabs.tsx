@@ -50,6 +50,15 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="builder"
+        options={{
+          title: 'Builder',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="tool" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,
