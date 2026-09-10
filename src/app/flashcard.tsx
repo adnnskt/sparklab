@@ -90,27 +90,32 @@ export default function FlashcardScreen() {
               const isSelected = selectedOption === option;
               const isRightAnswer = option === QUESTION.correctAnswer;
 
-              // Define estilo com base no estado do teste
-              let cardStyle = styles.optionCard;
-              let textStyle = styles.optionText;
+              const cardStyle = [
+                styles.optionCard,
+                isAnswered || isTimeOut
+                  ? isRightAnswer
+                    ? styles.optionCorrect
+                    : isSelected && !isCorrect
+                      ? styles.optionWrong
+                      : null
+                  : null,
+              ];
 
-              if (isAnswered || isTimeOut) {
-                if (isRightAnswer) {
-                  cardStyle = styles.optionCorrect;
-                  textStyle = styles.textWhite;
-                } else if (isSelected && !isCorrect) {
-                  cardStyle = styles.optionWrong;
-                  textStyle = styles.textWhite;
-                }
-              }
+              const textStyle = [
+                styles.codeOptionText,
+                (isAnswered || isTimeOut) &&
+                  (isRightAnswer || (isSelected && !isCorrect))
+                    ? styles.textWhite
+                    : null,
+              ];
 
               return (
                 <TouchableOpacity
                   key={index}
                   disabled={isAnswered || isTimeOut}
-                  style={[cardStyle]}
+                  style={cardStyle}
                   onPress={() => handleSelectOption(option)}>
-                  <Text style={[styles.codeOptionText, textStyle]}>{option}</Text>
+                  <Text style={textStyle}>{option}</Text>
                 </TouchableOpacity>
               );
             })}

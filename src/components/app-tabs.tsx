@@ -59,6 +59,15 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="flashcard"
+        options={{
+          title: 'Flashcard',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="zap" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,
