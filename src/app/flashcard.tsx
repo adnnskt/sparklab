@@ -25,7 +25,7 @@ const QUESTION = {
 };
 
 export default function FlashcardScreen() {
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(15);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
 
@@ -72,7 +72,7 @@ export default function FlashcardScreen() {
           <View
             style={[
               styles.progressBarFill,
-              { width: `${(timeLeft / 10) * 100}%` },
+              { width: `${(timeLeft / 15) * 100}%` },
               timeLeft <= 3 && styles.progressBarWarning,
             ]}
           />
