@@ -114,23 +114,103 @@ const EXAMPLES = [
     label: 'Via Lista / Tuplas',
     description: 'Criação manual a partir de dados locais em memória:',
     code: `data = [("Ana", 28), ("Bruno", 34)]\ncolumns = ["Nome", "Idade"]\n\ndf = spark.createDataFrame(data, columns)\ndf.show()`,
+    outputType: 'table' as const,
+    columns: ['Nome', 'Idade'],
+    rows: [
+      ['Ana', '28'],
+      ['Bruno', '34'],
+    ],
   },
   {
     id: 'csv',
     label: 'Via Arquivo CSV',
     description: 'Leitura de dados estruturados com cabeçalho:',
     code: `df = spark.read.csv(\n  "path/usuarios.csv",\n  header=True,\n  inferSchema=True\n)\ndf.show()`,
+    outputType: 'table' as const,
+    columns: ['id', 'nome', 'cargo', 'salario'],
+    rows: [
+      ['1', 'Ana Souza', 'Engenheiro de Dados', '9200'],
+      ['2', 'Bruno Lima', 'Analista de Dados', '5800'],
+      ['3', 'Carlos Silva', 'Data Scientist', '11500'],
+    ],
   },
   {
     id: 'json',
     label: 'Via Formato JSON',
     description: 'Carregamento de dados semi-estruturados:',
     code: `df = spark.read.json("path/dados.json")\ndf.printSchema()`,
+    outputType: 'schema' as const,
+    schema: [
+      { name: 'root', type: 'struct', indent: 0 },
+      { name: 'id', type: 'long', indent: 1 },
+      { name: 'nome', type: 'string', indent: 1 },
+      { name: 'email', type: 'string', indent: 1 },
+      { name: 'endereco', type: 'struct', indent: 1 },
+      { name: 'rua', type: 'string', indent: 2 },
+      { name: 'cidade', type: 'string', indent: 2 },
+      { name: 'estado', type: 'string', indent: 2 },
+    ],
   },
 ];
 
+function DataFrameTable({ columns, rows }: { columns: string[]; rows: string[][] }) {
+  return (
+    <View style={styles.table}>
+      {/* Header */}
+      <View style={styles.tableHeader}>
+        {columns.map((col, i) => (
+          <Text key={i} style={styles.tableHeaderText}>
+            {col}
+          </Text>
+        ))}
+      </View>
+      {/* Rows */}
+      {rows.map((row, rIdx) => (
+        <View key={rIdx} style={[styles.tableRow, rIdx % 2 === 0 && styles.tableRowEven]}>
+          {row.map((cell, cIdx) => (
+            <Text key={cIdx} style={styles.tableCell}>
+              {cell}
+            </Text>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function SchemaTree({ schema }: { schema: { name: string; type: string; indent: number }[] }) {
+  return (
+    <View style={styles.schemaContainer}>
+      {schema.map((field, i) => (
+        <View key={i} style={[styles.schemaRow, { paddingLeft: 8 + field.indent * 16 }]}>
+          <Text style={styles.schemaTree}>
+            {field.indent > 0 ? (i === schema.length - 1 ? '└─ ' : '├─ ') : ''}
+          </Text>
+          <Text style={styles.schemaName}>{field.name}</Text>
+          <Text style={styles.schemaType}> : {field.type}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function TheoryConceptScreen() {
   const [activeTab, setActiveTab] = useState(EXAMPLES[0]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [showOutput, setShowOutput] = useState(false);
+
+  const handleRun = () => {
+    setIsRunning(true);
+    setShowOutput(false);
+    setTimeout(() => {
+      setIsRunning(false);
+      setShowOutput(true);
+    }, 1200);
+  };
+
+  const handleReset = () => {
+    setShowOutput(false);
+  };
 
   return (
     <View style={styles.screen}>
@@ -165,7 +245,7 @@ export default function TheoryConceptScreen() {
                   <TouchableOpacity
                     key={item.id}
                     style={[styles.tabButton, isActive && styles.tabButtonActive]}
-                    onPress={() => setActiveTab(item)}>
+                    onPress={() => { setActiveTab(item); setShowOutput(false); setIsRunning(false); }}>
                     <Text style={[styles.tabButtonText, isActive && styles.tabTextActive]}>
                       {item.label}
                     </Text>
@@ -180,6 +260,38 @@ export default function TheoryConceptScreen() {
               <View style={styles.codeBlock}>
                 <CodeHighlight code={activeTab.code} />
               </View>
+
+              {/* Botão Executar */}
+              {!showOutput && (
+                <TouchableOpacity
+                  style={[styles.runButton, isRunning && styles.runButtonLoading]}
+                  disabled={isRunning}
+                  onPress={handleRun}>
+                  <Text style={styles.runButtonText}>
+                    {isRunning ? '⏳ Executando...' : '▶  Executar Código'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Saída do Jupyter Notebook */}
+              {showOutput && (
+                <View style={styles.outputContainer}>
+                  <View style={styles.outputHeader}>
+                    <Text style={styles.outputLabel}>📄 Output [{activeTab.id === 'list' ? '2' : activeTab.id === 'csv' ? '3' : '1'} rows]</Text>
+                    <TouchableOpacity onPress={handleReset}>
+                      <Text style={styles.outputReset}>Limpar</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.outputBlock}>
+                    {activeTab.outputType === 'table' && activeTab.columns && activeTab.rows && (
+                      <DataFrameTable columns={activeTab.columns} rows={activeTab.rows} />
+                    )}
+                    {activeTab.outputType === 'schema' && activeTab.schema && (
+                      <SchemaTree schema={activeTab.schema} />
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         </ScrollView>
@@ -224,6 +336,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 20,
+    paddingBottom: 60,
   },
   conceptCard: {
     backgroundColor: CARD_BG,
@@ -332,24 +445,138 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     flex: 1,
   },
+  // Botão Executar
+  runButton: {
+    backgroundColor: GREEN,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+    borderBottomWidth: 3,
+    borderBottomColor: '#059669',
+  },
+  runButtonLoading: {
+    backgroundColor: '#6B7280',
+    borderBottomColor: '#4B5563',
+  },
+  runButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  // Saída Jupyter
+  outputContainer: {
+    marginTop: 10,
+    gap: 8,
+  },
+  outputHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  outputLabel: {
+    color: TEXT_SECONDARY,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  outputReset: {
+    color: ORANGE,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  outputBlock: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  // Tabela DataFrame
+  table: {
+    gap: 0,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderBottomWidth: 2,
+    borderBottomColor: '#D1D5DB',
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
+  tableHeaderText: {
+    color: '#1F2937',
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'center',
+    flex: 1,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+  },
+  tableRowEven: {
+    backgroundColor: '#F9FAFB',
+  },
+  tableCell: {
+    color: '#374151',
+    fontFamily: 'monospace',
+    fontSize: 12,
+    textAlign: 'center',
+    flex: 1,
+  },
+  // Schema Tree
+  schemaContainer: {
+    gap: 2,
+  },
+  schemaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  schemaTree: {
+    color: '#9CA3AF',
+    fontFamily: 'monospace',
+    fontSize: 12,
+  },
+  schemaName: {
+    color: '#1F2937',
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  schemaType: {
+    color: '#6B7280',
+    fontFamily: 'monospace',
+    fontSize: 12,
+  },
   footer: {
-    padding: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderTopWidth: 1,
     borderTopColor: BORDER_COLOR,
     backgroundColor: BACKGROUND,
+    alignItems: 'center',
   },
   continueButton: {
-    backgroundColor: GREEN,
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: ORANGE,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignItems: 'center',
-    borderBottomWidth: 4,
-    borderBottomColor: '#059669',
   },
   continueButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
     letterSpacing: 0.5,
   },
 });
