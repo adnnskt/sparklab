@@ -17,7 +17,95 @@ const GREEN = '#10B981';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const BORDER_COLOR = '#374151';
-const CODE_COLOR = '#F59E0B';
+
+// Cores de Syntax Highlighting (VS Code Dark+)
+const SYN = {
+  keyword:   '#569CD6',
+  string:    '#CE9178',
+  number:    '#B5CEA8',
+  method:    '#DCDCAA',
+  variable:  '#9CDCFE',
+  operator:  '#D4D4D4',
+  text:      '#D4D4D4',
+  comment:   '#6A9955',
+  builtin:   '#4EC9B0',
+  param:     '#9CDCFE',
+} as const;
+
+const KEYWORDS = new Set([
+  'True','False','None','def','class','if','else','elif','return',
+  'import','from','as','in','for','while','with','try','except',
+  'finally','raise','pass','break','continue','and','or','not','is',
+]);
+
+const BUILTINS = new Set(['print','len','range','type','str','int','float','list','dict','set','tuple']);
+
+const PYSPARK_METHODS = new Set([
+  'show','read','csv','json','parquet','orc','text','option','options',
+  'format','load','save','createDataFrame','toDF','createOrReplaceTempView',
+  'printSchema','describe','summary','select','filter','where','groupBy',
+  'agg','join','withColumn','drop','distinct','count','sort','orderBy',
+  'limit','head','first','take','collect','toPandas','rdd','dtypes','columns',
+]);
+
+type TokenType = keyof typeof SYN;
+
+type Token = { text: string; type: TokenType };
+
+function tokenize(code: string): Token[] {
+  const TOKEN_RE = /(#.*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?|[a-zA-Z_]\w*|[^\s\w"#]+|\s+)/g;
+  const tokens: Token[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = TOKEN_RE.exec(code)) !== null) {
+    const raw = match[0];
+
+    if (raw.startsWith('#')) {
+      tokens.push({ text: raw, type: 'comment' });
+    } else if (raw.startsWith('"') || raw.startsWith("'")) {
+      tokens.push({ text: raw, type: 'string' });
+    } else if (/^\d/.test(raw)) {
+      tokens.push({ text: raw, type: 'number' });
+    } else if (/^[a-zA-Z_]/.test(raw)) {
+      if (KEYWORDS.has(raw)) {
+        tokens.push({ text: raw, type: 'keyword' });
+      } else if (BUILTINS.has(raw)) {
+        tokens.push({ text: raw, type: 'builtin' });
+      } else {
+        const next = code[match.index + raw.length];
+        tokens.push({ text: raw, type: next === '(' ? 'method' : 'variable' });
+      }
+    } else if (/^[=\+\-\*\/<>!&|^~%]$/.test(raw) || raw === '=>') {
+      tokens.push({ text: raw, type: 'operator' });
+    } else {
+      tokens.push({ text: raw, type: 'text' });
+    }
+  }
+  return tokens;
+}
+
+function CodeHighlight({ code, style }: { code: string; style?: object }) {
+  const lines = code.split('\n');
+  return (
+    <>
+      {lines.map((line, lineIdx) => {
+        const tokens = tokenize(line);
+        return (
+          <View key={lineIdx} style={styles.codeLine}>
+            <Text style={styles.lineNumber}>{lineIdx + 1}</Text>
+            <Text style={[styles.codeLineText, style]}>
+              {tokens.map((token, tIdx) => (
+                <Text key={tIdx} style={{ color: SYN[token.type] }}>
+                  {token.text}
+                </Text>
+              ))}
+            </Text>
+          </View>
+        );
+      })}
+    </>
+  );
+}
 
 // Exemplos de código interativos por categoria
 const EXAMPLES = [
@@ -90,7 +178,7 @@ export default function TheoryConceptScreen() {
             <View style={styles.codeCard}>
               <Text style={styles.codeDescription}>{activeTab.description}</Text>
               <View style={styles.codeBlock}>
-                <Text style={styles.codeText}>{activeTab.code}</Text>
+                <CodeHighlight code={activeTab.code} />
               </View>
             </View>
           </View>
@@ -223,12 +311,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#0D1117',
     padding: 12,
     borderRadius: 8,
+    gap: 2,
   },
-  codeText: {
-    color: CODE_COLOR,
+  codeLine: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  lineNumber: {
+    color: '#4B5563',
+    fontFamily: 'monospace',
+    fontSize: 11,
+    width: 24,
+    textAlign: 'right',
+    marginRight: 12,
+    paddingTop: 1,
+  },
+  codeLineText: {
     fontFamily: 'monospace',
     fontSize: 13,
     lineHeight: 20,
+    flex: 1,
   },
   footer: {
     padding: 16,

@@ -68,6 +68,15 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="theory"
+        options={{
+          title: 'Teoria',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="book-open" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,
