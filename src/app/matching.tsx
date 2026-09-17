@@ -181,6 +181,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 16,
+    paddingBottom: 60,
   },
   matchingGrid: {
     flexDirection: 'row',
@@ -240,10 +241,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   footer: {
-    padding: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
     borderTopWidth: 1,
     borderTopColor: BORDER_COLOR,
     backgroundColor: BACKGROUND,
+    alignItems: 'center',
   },
   verifyButton: {
     backgroundColor: CARD_BG,

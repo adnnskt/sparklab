@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 16,
+    paddingBottom: 60,
   },
   instructionCard: {
     backgroundColor: CARD_BG,
@@ -282,10 +283,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   footer: {
-    padding: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
     backgroundColor: BACKGROUND,
     borderTopWidth: 1,
     borderTopColor: '#2D3748',
+    alignItems: 'center',
   },
   verifyButton: {
     backgroundColor: ACCENT_ORANGE,

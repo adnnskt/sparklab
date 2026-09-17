@@ -180,6 +180,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 16,
+    paddingBottom: 60,
   },
   editorArea: {
     backgroundColor: CODE_BG,
@@ -254,11 +255,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   footer: {
-    padding: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
     borderTopWidth: 1,
     borderTopColor: BORDER_COLOR,
     backgroundColor: BACKGROUND,
-    gap: 12,
+    gap: 8,
+    alignItems: 'center',
   },
   footerCorrect: {
     backgroundColor: '#064E3B',

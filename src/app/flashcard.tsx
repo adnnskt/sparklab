@@ -266,11 +266,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   footer: {
-    padding: 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
     borderTopWidth: 1,
     borderTopColor: BORDER_COLOR,
     backgroundColor: BACKGROUND,
-    gap: 12,
+    gap: 8,
+    alignItems: 'center',
   },
   footerCorrect: {
     backgroundColor: '#064E3B',
