@@ -295,8 +295,9 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     backgroundColor: ACCENT_ORANGE,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignItems: 'center',
     shadowColor: ACCENT_ORANGE_DARK,
     shadowOffset: { width: 0, height: 4 },
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
   },
   verifyButtonText: {
     color: '#000000',
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
   },

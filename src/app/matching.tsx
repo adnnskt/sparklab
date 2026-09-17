@@ -253,8 +253,9 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     backgroundColor: CARD_BG,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: BORDER_COLOR,
@@ -262,12 +263,10 @@ const styles = StyleSheet.create({
   verifyButtonActive: {
     backgroundColor: GREEN,
     borderColor: GREEN,
-    borderBottomWidth: 4,
-    borderBottomColor: '#059669',
   },
   verifyButtonText: {
     color: TEXT_PRIMARY,
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

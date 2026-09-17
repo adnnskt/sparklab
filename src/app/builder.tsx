@@ -280,26 +280,23 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     backgroundColor: CARD_BG,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignItems: 'center',
   },
   verifyButtonActive: {
     backgroundColor: ORANGE,
-    borderBottomWidth: 4,
-    borderBottomColor: '#B36500',
   },
   btnSuccess: {
     backgroundColor: GREEN,
-    borderBottomColor: '#059669',
   },
   btnError: {
     backgroundColor: RED,
-    borderBottomColor: '#991B1B',
   },
   verifyButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
