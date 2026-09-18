@@ -32,51 +32,6 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="quest_1"
-        options={{
-          title: 'Questão 1',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="code" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="matching"
-        options={{
-          title: 'Matching',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="git-merge" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="builder"
-        options={{
-          title: 'Builder',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="tool" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="flashcard"
-        options={{
-          title: 'Flashcard',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="zap" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="theory"
-        options={{
-          title: 'Teoria',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="book-open" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="explore"
         options={{
           href: null,

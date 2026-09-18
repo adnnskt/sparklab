@@ -7,6 +7,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
@@ -37,6 +38,7 @@ const INITIAL_BLOCKS = [
 ];
 
 export default function CodeBuilderScreen() {
+  const router = useRouter();
   const [editorBlocks, setEditorBlocks] = useState<{ id: string; code: string }[]>([]);
   const [availableBlocks, setAvailableBlocks] = useState(INITIAL_BLOCKS);
   const [status, setStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -63,6 +65,10 @@ export default function CodeBuilderScreen() {
       userSolution.every((val, index) => val === SOLUTION[index]);
 
     setStatus(isCorrect ? 'correct' : 'wrong');
+
+    if (isCorrect) {
+      setTimeout(() => router.push('/(exercises)/flashcard'), 1500);
+    }
   };
 
   return (

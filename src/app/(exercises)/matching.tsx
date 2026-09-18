@@ -7,6 +7,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
@@ -35,6 +36,7 @@ const RIGHT_COMMANDS = [
 ];
 
 export default function MatchingExerciseScreen() {
+  const router = useRouter();
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const [matches, setMatches] = useState<Record<string, string>>({}); // { actionId: commandId }
   const [wrongMatch, setWrongMatch] = useState<{ left: string; right: string } | null>(null);
@@ -142,7 +144,8 @@ export default function MatchingExerciseScreen() {
         <View style={styles.footer}>
           <TouchableOpacity
             disabled={!isCompleted}
-            style={[styles.verifyButton, isCompleted && styles.verifyButtonActive]}>
+            style={[styles.verifyButton, isCompleted && styles.verifyButtonActive]}
+            onPress={() => isCompleted && router.push('/(exercises)/builder')}>
             <Text style={styles.verifyButtonText}>
               {isCompleted ? 'CONTINUAR' : 'COMBINE OS PARES'}
             </Text>

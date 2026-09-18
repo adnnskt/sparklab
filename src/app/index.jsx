@@ -1,10 +1,11 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Mapeamento dos módulos da trilha com ícones vetoriais limpos
 const SKILL_TREE = [
-  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', library: 'MaterialCommunityIcons', status: 'completed' },
+  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', library: 'MaterialCommunityIcons', status: 'completed', route: '/(exercises)/theory' },
   { id: '2', title: 'Variáveis & Val/Var', icon: 'variable', library: 'Octicons', status: 'completed' },
   { id: '3', title: 'Classes & Objetos', icon: 'cube-outline', library: 'MaterialCommunityIcons', status: 'active' },
   { id: '4', title: 'Funções & Lambdas', icon: 'function-variant', library: 'MaterialCommunityIcons', status: 'locked' },
@@ -12,9 +13,11 @@ const SKILL_TREE = [
 ];
 
 function SkillNode({ node }) {
+  const router = useRouter();
   const isCompleted = node.status === 'completed';
   const isActive = node.status === 'active';
   const isLocked = node.status === 'locked';
+  const hasRoute = !!node.route;
 
   return (
     <View style={styles.nodeWrapper}>
@@ -25,9 +28,9 @@ function SkillNode({ node }) {
           isCompleted && styles.circleCompleted,
           isLocked && styles.circleLocked
         ]}
-        disabled={isLocked}
+        disabled={isLocked || !hasRoute}
+        onPress={() => hasRoute && router.push(node.route)}
       >
-        {/* Renderiza o ícone de acordo com o estado do nó */}
         {isLocked ? (
           <Feather name="lock" size={28} color="#6B7280" />
         ) : (

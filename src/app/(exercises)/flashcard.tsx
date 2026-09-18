@@ -6,6 +6,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
@@ -25,6 +26,7 @@ const QUESTION = {
 };
 
 export default function FlashcardScreen() {
+  const router = useRouter();
   const [timeLeft, setTimeLeft] = useState(15);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -144,7 +146,8 @@ export default function FlashcardScreen() {
             style={[
               styles.nextButton,
               (isAnswered || isTimeOut) && styles.nextButtonActive,
-            ]}>
+            ]}
+            onPress={() => router.dismissAll()}>
             <Text style={styles.nextButtonText}>PRÓXIMO FLASHCARD</Text>
           </TouchableOpacity>
         </View>

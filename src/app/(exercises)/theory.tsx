@@ -7,6 +7,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
@@ -195,6 +196,7 @@ function SchemaTree({ schema }: { schema: { name: string; type: string; indent: 
 }
 
 export default function TheoryConceptScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(EXAMPLES[0]);
   const [isRunning, setIsRunning] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
@@ -298,7 +300,7 @@ export default function TheoryConceptScreen() {
 
         {/* Rodapé de Conclusão */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.continueButton}>
+          <TouchableOpacity style={styles.continueButton} onPress={() => router.push('/(exercises)/quest_1')}>
             <Text style={styles.continueButtonText}>ENTENDI, IR PARA EXERCÍCIOS</Text>
           </TouchableOpacity>
         </View>

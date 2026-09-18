@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Paleta de Cores — Dark Theme + Laranja Spark (escolhas/botão) + Verde (input)
 const BACKGROUND = '#1E232A';
@@ -37,6 +38,7 @@ const INITIAL_OPTIONS = [
 ];
 
 export default function SparkExerciseScreen() {
+  const router = useRouter();
   const [selectedSlots, setSelectedSlots] = useState< Record<number, string | null> >({
     0: null, // Slot 1: Path
     1: null, // Slot 2: Option Key (inferSchema)
@@ -161,7 +163,7 @@ export default function SparkExerciseScreen() {
 
         {/* Botão Inferior de Verificação */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.verifyButton}>
+          <TouchableOpacity style={styles.verifyButton} onPress={() => router.push('/(exercises)/matching')}>
             <Text style={styles.verifyButtonText}>VERIFICAR</Text>
           </TouchableOpacity>
         </View>
