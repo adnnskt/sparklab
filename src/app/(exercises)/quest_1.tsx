@@ -24,6 +24,15 @@ const CODE_BLUE = '#60A5FA';
 const CODE_COMMENT = '#6B7280';
 const BLANK_BORDER = '#10B981';
 
+const ACCENT_RED = '#EF4444';
+
+// Resposta correta
+const SOLUTION = {
+  0: '/user/data/sales.csv',
+  1: 'inferSchema',
+  2: 'load',
+};
+
 // Palavras de opção para o usuário selecionar
 const INITIAL_OPTIONS = [
   'header',
@@ -37,18 +46,21 @@ const INITIAL_OPTIONS = [
   '/user/data/sales.csv',
 ];
 
+type Status = 'idle' | 'correct' | 'wrong';
+
 export default function SparkExerciseScreen() {
   const router = useRouter();
-  const [selectedSlots, setSelectedSlots] = useState< Record<number, string | null> >({
-    0: null, // Slot 1: Path
-    1: null, // Slot 2: Option Key (inferSchema)
-    2: null, // Slot 3: Method (load)
+  const [status, setStatus] = useState<Status>('idle');
+  const [selectedSlots, setSelectedSlots] = useState<Record<number, string | null>>({
+    0: null,
+    1: null,
+    2: null,
   });
 
   const [availableOptions, setAvailableOptions] = useState<string[]>(INITIAL_OPTIONS);
 
   const handleSelectOption = (option: string) => {
-    // Encontra o primeiro slot vazio e preenche
+    if (status !== 'idle') return;
     const firstEmptyIndex = [0, 1, 2].find((idx) => selectedSlots[idx] === null);
     if (firstEmptyIndex !== undefined) {
       setSelectedSlots((prev) => ({ ...prev, [firstEmptyIndex]: option }));
@@ -57,11 +69,31 @@ export default function SparkExerciseScreen() {
   };
 
   const handleRemoveSlot = (slotIndex: number) => {
+    if (status !== 'idle') return;
     const itemToRemove = selectedSlots[slotIndex];
     if (itemToRemove) {
       setSelectedSlots((prev) => ({ ...prev, [slotIndex]: null }));
       setAvailableOptions((prev) => [...prev, itemToRemove]);
     }
+  };
+
+  const handleVerify = () => {
+    const isCorrect =
+      selectedSlots[0] === SOLUTION[0] &&
+      selectedSlots[1] === SOLUTION[1] &&
+      selectedSlots[2] === SOLUTION[2];
+
+    setStatus(isCorrect ? 'correct' : 'wrong');
+
+    if (isCorrect) {
+      setTimeout(() => router.push('/(exercises)/matching'), 1200);
+    }
+  };
+
+  const handleRetry = () => {
+    setStatus('idle');
+    setSelectedSlots({ 0: null, 1: null, 2: null });
+    setAvailableOptions(INITIAL_OPTIONS);
   };
 
   return (
@@ -163,9 +195,25 @@ export default function SparkExerciseScreen() {
 
         {/* Botão Inferior de Verificação */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.verifyButton} onPress={() => router.push('/(exercises)/matching')}>
-            <Text style={styles.verifyButtonText}>VERIFICAR</Text>
-          </TouchableOpacity>
+          {status === 'wrong' && (
+            <View style={styles.feedbackArea}>
+              <Text style={styles.wrongText}>Resposta incorreta</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+                <Text style={styles.retryButtonText}>TENTAR NOVAMENTE</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {status === 'correct' && (
+            <Text style={styles.correctText}>Correto! Avançando...</Text>
+          )}
+          {status === 'idle' && (
+            <TouchableOpacity
+              style={[styles.verifyButton, Object.values(selectedSlots).some(v => v === null) && styles.verifyButtonDisabled]}
+              disabled={Object.values(selectedSlots).some(v => v === null)}
+              onPress={handleVerify}>
+              <Text style={styles.verifyButtonText}>VERIFICAR</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     </View>
@@ -309,6 +357,36 @@ const styles = StyleSheet.create({
   },
   verifyButtonText: {
     color: '#000000',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  verifyButtonDisabled: {
+    backgroundColor: '#4B5563',
+  },
+  feedbackArea: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  wrongText: {
+    color: ACCENT_RED,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  correctText: {
+    color: ACCENT_GREEN,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  retryButton: {
+    backgroundColor: ACCENT_RED,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
