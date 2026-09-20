@@ -1,18 +1,23 @@
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-// Mapeamento dos módulos da trilha com ícones vetoriais limpos
+const ORANGE = '#FF9600';
+const ORANGE_LIGHT = '#FFC266';
+const BG = '#1A1D22';
+const CIRCLE_BG = '#2A2E37';
+const CIRCLE_BORDER = '#3A3F4D';
+const CIRCLE_LOCKED = '#1E2127';
+
 const SKILL_TREE = [
-  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', library: 'MaterialCommunityIcons', status: 'completed', route: '/(exercises)/theory' },
-  { id: '2', title: 'Variáveis & Val/Var', icon: 'variable', library: 'Octicons', status: 'completed' },
-  { id: '3', title: 'Classes & Objetos', icon: 'cube-outline', library: 'MaterialCommunityIcons', status: 'active' },
-  { id: '4', title: 'Funções & Lambdas', icon: 'function-variant', library: 'MaterialCommunityIcons', status: 'locked' },
-  { id: '5', title: 'Métodos Avançados', icon: 'code', library: 'Feather', status: 'locked' },
+  { id: '1', title: 'Sintaxe & Tipos', status: 'completed', route: '/(exercises)/theory' },
+  { id: '2', title: 'Variáveis & Val/Var', status: 'completed' },
+  { id: '3', title: 'Classes & Objetos', status: 'active' },
+  { id: '4', title: 'Funções & Lambdas', status: 'locked' },
+  { id: '5', title: 'Métodos Avançados', status: 'locked' },
 ];
 
-function SkillNode({ node }) {
+function SkillNode({ node, index, isLast }) {
   const router = useRouter();
   const isCompleted = node.status === 'completed';
   const isActive = node.status === 'active';
@@ -20,31 +25,41 @@ function SkillNode({ node }) {
   const hasRoute = !!node.route;
 
   return (
-    <View style={styles.nodeWrapper}>
-      <TouchableOpacity 
-        style={[
-          styles.circleNode, 
-          isActive && styles.circleActive,
-          isCompleted && styles.circleCompleted,
-          isLocked && styles.circleLocked
-        ]}
-        disabled={isLocked || !hasRoute}
-        onPress={() => hasRoute && router.push(node.route)}
-      >
-        {isLocked ? (
-          <Feather name="lock" size={28} color="#6B7280" />
-        ) : (
-          <MaterialCommunityIcons 
-            name={node.icon} 
-            size={32} 
-            color={isActive || isCompleted ? '#FFFFFF' : '#FF9600'} 
-          />
-        )}
-      </TouchableOpacity>
-      
-      <Text style={[styles.nodeTitle, isLocked && styles.textLocked]}>
-        {node.title}
-      </Text>
+    <View style={styles.nodeRow}>
+      {/* Linha conectora */}
+      <View style={styles.nodeColumn}>
+        <View style={[styles.line, isLast && styles.lineHidden]} />
+      </View>
+
+      {/* Círculo */}
+      <View style={styles.nodeColumn}>
+        <TouchableOpacity
+          style={[
+            styles.circle,
+            isCompleted && styles.circleCompleted,
+            isActive && styles.circleActive,
+            isLocked && styles.circleLocked,
+          ]}
+          disabled={isLocked || !hasRoute}
+          activeOpacity={0.7}
+          onPress={() => hasRoute && router.push(node.route)}>
+          <Text style={[
+            styles.circleNumber,
+            isCompleted && styles.circleNumberLight,
+            isActive && styles.circleNumberLight,
+          ]}>
+            {index + 1}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Título */}
+      <View style={styles.titleColumn}>
+        <Text style={[styles.nodeTitle, isLocked && styles.textLocked]}>
+          {node.title}
+        </Text>
+        {isCompleted && <Text style={styles.checkMark}>✓</Text>}
+      </View>
     </View>
   );
 }
@@ -58,9 +73,15 @@ export default function HomeScreen() {
             <Text style={styles.headerTitle}>SparkLab</Text>
             <Text style={styles.headerSubtitle}>trilha de spark</Text>
           </View>
-          <View style={styles.skillTree}>
-            {SKILL_TREE.map((node) => (
-              <SkillNode key={node.id} node={node} />
+
+          <View style={styles.trail}>
+            {SKILL_TREE.map((node, index) => (
+              <SkillNode
+                key={node.id}
+                node={node}
+                index={index}
+                isLast={index === SKILL_TREE.length - 1}
+              />
             ))}
           </View>
         </ScrollView>
@@ -72,72 +93,99 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#1A1D22',
+    backgroundColor: BG,
   },
   safeArea: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    alignItems: 'center',
+    padding: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '800',
   },
   headerSubtitle: {
-    color: '#FF9600',
-    fontSize: 13,
+    color: ORANGE,
+    fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
+    marginTop: 4,
   },
-  skillTree: {
+  trail: {
+    paddingLeft: 24,
+  },
+  nodeRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  nodeWrapper: {
+  nodeColumn: {
     alignItems: 'center',
-    marginVertical: 16,
+    width: 40,
   },
-  circleNode: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#23272F',
-    borderWidth: 4,
-    borderColor: '#3A3F4D',
+  line: {
+    width: 2,
+    height: 40,
+    backgroundColor: ORANGE,
+  },
+  lineHidden: {
+    backgroundColor: 'transparent',
+  },
+  circle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: CIRCLE_BG,
+    borderWidth: 2,
+    borderColor: CIRCLE_BORDER,
     justifyContent: 'center',
     alignItems: 'center',
-    // Sombra estilo botão 3D do Duolingo
-    borderBottomWidth: 8,
   },
   circleCompleted: {
-    backgroundColor: '#E07F00',
-    borderColor: '#FF9600',
-    borderBottomColor: '#B36500',
+    backgroundColor: ORANGE,
+    borderColor: ORANGE,
   },
   circleActive: {
-    backgroundColor: '#FF9600',
-    borderColor: '#FFC266',
-    borderBottomColor: '#E07F00',
+    backgroundColor: CIRCLE_BG,
+    borderColor: ORANGE,
   },
   circleLocked: {
-    backgroundColor: '#1A1D22',
-    borderColor: '#2D323C',
-    borderBottomColor: '#101216',
+    backgroundColor: CIRCLE_LOCKED,
+    borderColor: '#252830',
+  },
+  circleNumber: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  circleNumberLight: {
+    color: '#FFFFFF',
+  },
+  titleColumn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 12,
+    paddingVertical: 12,
   },
   nodeTitle: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 8,
+    fontSize: 14,
+    fontWeight: '600',
   },
   textLocked: {
-    color: '#6B7280',
+    color: '#4B5563',
+  },
+  checkMark: {
+    color: ORANGE,
+    fontSize: 12,
+    fontWeight: '800',
+    marginLeft: 8,
   },
 });
