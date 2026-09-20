@@ -9,16 +9,72 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-// Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
 const CARD_BG = '#2A303C';
 const ORANGE = '#FF9600';
-const ORANGE_DARK = '#E07F00';
 const GREEN = '#10B981';
 const RED = '#EF4444';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const BORDER_COLOR = '#374151';
+
+const SYN = {
+  keyword:   '#569CD6',
+  string:    '#CE9178',
+  number:    '#B5CEA8',
+  method:    '#DCDCAA',
+  variable:  '#9CDCFE',
+  operator:  '#D4D4D4',
+  text:      '#D4D4D4',
+  comment:   '#6A9955',
+  builtin:   '#4EC9B0',
+} as const;
+
+const KEYWORDS = new Set(['def','class','if','else','return','import','from','as','in','for','while','with','True','False','None']);
+const BUILTINS = new Set(['print','len','range','type','str','int','float','list','dict']);
+const PYSPARK_METHODS = new Set(['show','read','csv','json','parquet','option','options','format','load','save','write','display','groupBy','filter','where','printSchema','select','dropna','withColumn','drop','distinct','count','sort','orderBy','limit','head','first','take','collect','toPandas','rdd','dtypes','columns','join','agg','createDataFrame','toDF','createOrReplaceTempView','describe','summary']);
+
+type TokenType = keyof typeof SYN;
+type Token = { text: string; type: TokenType };
+
+function tokenize(code: string): Token[] {
+  const TOKEN_RE = /(#.*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\d+(?:\.\d+)?|[a-zA-Z_]\w*|[^\s\w"#]+|\s+)/g;
+  const tokens: Token[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = TOKEN_RE.exec(code)) !== null) {
+    const raw = match[0];
+    if (raw.startsWith('#')) {
+      tokens.push({ text: raw, type: 'comment' });
+    } else if (raw.startsWith('"') || raw.startsWith("'")) {
+      tokens.push({ text: raw, type: 'string' });
+    } else if (/^\d/.test(raw)) {
+      tokens.push({ text: raw, type: 'number' });
+    } else if (/^[a-zA-Z_]/.test(raw)) {
+      if (KEYWORDS.has(raw)) tokens.push({ text: raw, type: 'keyword' });
+      else if (BUILTINS.has(raw)) tokens.push({ text: raw, type: 'builtin' });
+      else {
+        const next = code[match.index + raw.length];
+        tokens.push({ text: raw, type: next === '(' ? 'method' : 'variable' });
+      }
+    } else if (/^[=\+\-\*\/<>!&|^~%]$/.test(raw)) {
+      tokens.push({ text: raw, type: 'operator' });
+    } else {
+      tokens.push({ text: raw, type: 'text' });
+    }
+  }
+  return tokens;
+}
+
+function CodeText({ code }: { code: string }) {
+  const tokens = tokenize(code);
+  return (
+    <Text>
+      {tokens.map((t, i) => (
+        <Text key={i} style={{ color: SYN[t.type] }}>{t.text}</Text>
+      ))}
+    </Text>
+  );
+}
 
 // Dados do Exercício de Associação
 const LEFT_ACTIONS = [
@@ -131,7 +187,7 @@ export default function MatchingExerciseScreen() {
                         isMatched && styles.textWhite,
                         isWrong && styles.textWhite,
                       ]}>
-                      {item.code}
+                      <CodeText code={item.code} />
                     </Text>
                   </TouchableOpacity>
                 );

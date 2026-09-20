@@ -9,41 +9,97 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-// Paleta de Cores — Dark Theme + Laranja Spark (escolhas/botão) + Verde (input)
 const BACKGROUND = '#1E232A';
 const CARD_BG = '#2A303C';
-const CODE_BG = '#191D24';
+const CODE_BG = '#0D1117';
 const ACCENT_GREEN = '#10B981';
-const ACCENT_GREEN_DARK = '#059669';
 const ACCENT_ORANGE = '#FF9600';
-const ACCENT_ORANGE_DARK = '#E07F00';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const CODE_YELLOW = '#F59E0B';
-const CODE_BLUE = '#60A5FA';
-const CODE_COMMENT = '#6B7280';
-const BLANK_BORDER = '#10B981';
-
+const BORDER_COLOR = '#374151';
 const ACCENT_RED = '#EF4444';
 
-// Resposta correta
+const SYN = {
+  keyword:   '#569CD6',
+  string:    '#CE9178',
+  number:    '#B5CEA8',
+  method:    '#DCDCAA',
+  variable:  '#9CDCFE',
+  operator:  '#D4D4D4',
+  text:      '#D4D4D4',
+  comment:   '#6A9955',
+  builtin:   '#4EC9B0',
+  param:     '#9CDCFE',
+} as const;
+
+const KEYWORDS = new Set([
+  'True','False','None','def','class','if','else','elif','return',
+  'import','from','as','in','for','while','with','try','except',
+]);
+
+const BUILTINS = new Set(['print','len','range','type','str','int','float','list','dict']);
+
+const PYSPARK_METHODS = new Set([
+  'show','read','csv','json','parquet','option','options',
+  'format','load','save','createDataFrame','toDF',
+  'printSchema','select','filter','where','groupBy',
+  'agg','join','withColumn','drop','distinct','count','sort','orderBy',
+]);
+
+type TokenType = keyof typeof SYN;
+type Token = { text: string; type: TokenType };
+
+function tokenize(code: string): Token[] {
+  const TOKEN_RE = /(#.*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?|[a-zA-Z_]\w*|[^\s\w"#]+|\s+)/g;
+  const tokens: Token[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = TOKEN_RE.exec(code)) !== null) {
+    const raw = match[0];
+    if (raw.startsWith('#')) {
+      tokens.push({ text: raw, type: 'comment' });
+    } else if (raw.startsWith('"') || raw.startsWith("'")) {
+      tokens.push({ text: raw, type: 'string' });
+    } else if (/^\d/.test(raw)) {
+      tokens.push({ text: raw, type: 'number' });
+    } else if (/^[a-zA-Z_]/.test(raw)) {
+      if (KEYWORDS.has(raw)) tokens.push({ text: raw, type: 'keyword' });
+      else if (BUILTINS.has(raw)) tokens.push({ text: raw, type: 'builtin' });
+      else {
+        const next = code[match.index + raw.length];
+        tokens.push({ text: raw, type: next === '(' ? 'method' : 'variable' });
+      }
+    } else if (/^[=\+\-\*\/<>!&|^~%]$/.test(raw) || raw === '=>') {
+      tokens.push({ text: raw, type: 'operator' });
+    } else {
+      tokens.push({ text: raw, type: 'text' });
+    }
+  }
+  return tokens;
+}
+
+function CodeLine({ text, lineNum }: { text: string; lineNum: number }) {
+  const tokens = tokenize(text);
+  return (
+    <View style={styles.codeLine}>
+      <Text style={styles.lineNumber}>{lineNum}</Text>
+      <Text style={styles.codeLineText}>
+        {tokens.map((t, i) => (
+          <Text key={i} style={{ color: SYN[t.type] }}>{t.text}</Text>
+        ))}
+      </Text>
+    </View>
+  );
+}
+
 const SOLUTION = {
   0: '/user/data/sales.csv',
   1: 'inferSchema',
   2: 'load',
 };
 
-// Palavras de opção para o usuário selecionar
 const INITIAL_OPTIONS = [
-  'header',
-  'inferSchema',
-  'schema',
-  'path',
-  'infer',
-  'load',
-  'save',
-  'options',
-  '/user/data/sales.csv',
+  'header', 'inferSchema', 'schema', 'path',
+  'infer', 'load', 'save', 'options', '/user/data/sales.csv',
 ];
 
 type Status = 'idle' | 'correct' | 'wrong';
@@ -52,11 +108,8 @@ export default function SparkExerciseScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<Status>('idle');
   const [selectedSlots, setSelectedSlots] = useState<Record<number, string | null>>({
-    0: null,
-    1: null,
-    2: null,
+    0: null, 1: null, 2: null,
   });
-
   const [availableOptions, setAvailableOptions] = useState<string[]>(INITIAL_OPTIONS);
 
   const handleSelectOption = (option: string) => {
@@ -82,9 +135,7 @@ export default function SparkExerciseScreen() {
       selectedSlots[0] === SOLUTION[0] &&
       selectedSlots[1] === SOLUTION[1] &&
       selectedSlots[2] === SOLUTION[2];
-
     setStatus(isCorrect ? 'correct' : 'wrong');
-
     if (isCorrect) {
       setTimeout(() => router.push('/(exercises)/matching'), 1200);
     }
@@ -96,104 +147,129 @@ export default function SparkExerciseScreen() {
     setAvailableOptions(INITIAL_OPTIONS);
   };
 
+  const slot0 = selectedSlots[0] || '              ';
+  const slot1 = selectedSlots[1] || '          ';
+  const slot2 = selectedSlots[2] || '    ';
+
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        {/* Header / Barra de Status */}
-        <View style={styles.statusBar}>
-          <Text style={styles.statusText}>🔥 15 dias</Text>
-          <Text style={styles.statusText}>💎 500</Text>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelText}>NÍVEL 1</Text>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>EXERCÍCIO · SINTAXE & TIPOS</Text>
+          <Text style={styles.headerSubtitle}>Complete o código Spark</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          {/* Instruções do Exercício */}
           <View style={styles.instructionCard}>
             <Text style={styles.instructionText}>
-              Complete o código para carregar um arquivo CSV do HDFS para um DataFrame. O arquivo
+              Complete o código para carregar um arquivo CSV do HDFS. O arquivo
               está em <Text style={styles.highlightText}>'/user/data/sales.csv'</Text>, tem cabeçalho
               e usa delimitador ';'. O esquema deve ser inferido.
             </Text>
           </View>
 
-          {/* Card do Código (Notebook Style) */}
-          <View style={styles.codeContainer}>
-            <Text style={styles.codeComment}>
-              # Definição das opções{'\n'}
-              <Text style={{ color: CODE_YELLOW }}>spark</Text> = SparkSession.builder.appName("CSV Reader").getOrCreate()
-            </Text>
-
+          <View style={styles.codeCard}>
             <View style={styles.codeBlock}>
-              <Text style={styles.codeLine}>
-                <Text style={{ color: CODE_YELLOW }}>opts</Text> = {'{\n'}
-                {'  '}<Text style={{ color: CODE_BLUE }}>'header'</Text>: 'true',{'\n'}
-                {'  '}<Text style={{ color: CODE_BLUE }}>'delimiter'</Text>: ';'{'\n'}
-                {'}'}
-              </Text>
-
-              <Text style={styles.codeComment}>{'\n'}# Código Spark a completar:</Text>
-              
-              <Text style={styles.codeLine}>
-                <Text style={{ color: CODE_YELLOW }}>df</Text> = ({'\n'}
-                {'  '}spark{'\n'}
-                {'  '}.read{'\n'}
-                {'  '}.format(<Text style={{ color: CODE_BLUE }}>"csv"</Text>){'\n'}
-                {'  '}.options(**opts){'\n'}
-                {'  '}.option(<Text style={{ color: CODE_BLUE }}>"path"</Text>, "
-                
-                {/* Slot 1: Path */}
-                <TouchableOpacity
-                  style={styles.inlineBlank}
-                  onPress={() => handleRemoveSlot(0)}>
-                  <Text style={styles.blankText}>{selectedSlots[0] || '           '}</Text>
-                </TouchableOpacity>
-                ")
-              </Text>
-
-              <Text style={styles.codeLine}>
-                {'  '}.option("
-                
-                {/* Slot 2: inferSchema */}
-                <TouchableOpacity
-                  style={styles.inlineBlank}
-                  onPress={() => handleRemoveSlot(1)}>
-                  <Text style={styles.blankText}>{selectedSlots[1] || '       '}</Text>
-                </TouchableOpacity>
-                ", <Text style={{ color: CODE_BLUE }}>"true"</Text>)
-              </Text>
-
-              <Text style={styles.codeLine}>
-                {'  '}.
-                
-                {/* Slot 3: load */}
-                <TouchableOpacity
-                  style={styles.inlineBlank}
-                  onPress={() => handleRemoveSlot(2)}>
-                  <Text style={styles.blankText}>{selectedSlots[2] || '   '}</Text>
-                </TouchableOpacity>
-                ()
-              </Text>
-
-              <Text style={styles.codeLine}>)</Text>
+              <CodeLine text='spark = SparkSession.builder.appName("CSV Reader").getOrCreate()' lineNum={1} />
+              <CodeLine text='' lineNum={2} />
+              <CodeLine text='opts = {' lineNum={3} />
+              <CodeLine text="    'header': 'true'," lineNum={4} />
+              <CodeLine text="    'delimiter': ';'" lineNum={5} />
+              <CodeLine text='}' lineNum={6} />
+              <CodeLine text='' lineNum={7} />
+              <CodeLine text='# Código Spark a completar:' lineNum={8} />
+              <CodeLine text='' lineNum={9} />
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>10</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.variable }}>df</Text>
+                  <Text style={{ color: SYN.text }}> = (</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>11</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    spark</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>12</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .read</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>13</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .format(</Text>
+                  <Text style={{ color: SYN.string }}>"csv"</Text>
+                  <Text style={{ color: SYN.text }}>)</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>14</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .options(**opts)</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>15</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .option(</Text>
+                  <Text style={{ color: SYN.string }}>"path"</Text>
+                  <Text style={{ color: SYN.text }}>, </Text>
+                  <TouchableOpacity style={styles.inlineBlank} onPress={() => handleRemoveSlot(0)}>
+                    <Text style={styles.blankText}>{slot0}</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: SYN.text }}>)</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>16</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .option(</Text>
+                  <TouchableOpacity style={styles.inlineBlank} onPress={() => handleRemoveSlot(1)}>
+                    <Text style={styles.blankText}>{slot1}</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: SYN.text }}>, </Text>
+                  <Text style={{ color: SYN.string }}>"true"</Text>
+                  <Text style={{ color: SYN.text }}>)</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>17</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>    .</Text>
+                  <TouchableOpacity style={styles.inlineBlank} onPress={() => handleRemoveSlot(2)}>
+                    <Text style={styles.blankText}>{slot2}</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: SYN.text }}>()</Text>
+                </Text>
+              </View>
+              <View style={styles.codeLine}>
+                <Text style={styles.lineNumber}>18</Text>
+                <Text style={styles.codeLineText}>
+                  <Text style={{ color: SYN.text }}>)</Text>
+                </Text>
+              </View>
             </View>
           </View>
 
-          {/* Grade de Botões de Opção */}
-          <View style={styles.optionsContainer}>
-            {availableOptions.map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.optionChip}
-                onPress={() => handleSelectOption(option)}>
-                <Text style={styles.optionChipText}>[{option}]</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.optionsSection}>
+            <Text style={styles.optionsLabel}>OPÇÕES</Text>
+            <View style={styles.optionsContainer}>
+              {availableOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.optionChip}
+                  onPress={() => handleSelectOption(option)}>
+                  <Text style={styles.optionChipText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </ScrollView>
 
-        {/* Botão Inferior de Verificação */}
         <View style={styles.footer}>
           {status === 'wrong' && (
             <View style={styles.feedbackArea}>
@@ -228,82 +304,83 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  statusBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  header: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#16191E',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#2D3748',
+    borderBottomColor: BORDER_COLOR,
   },
-  statusText: {
-    color: TEXT_PRIMARY,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  levelBadge: {
-    backgroundColor: ACCENT_GREEN_DARK,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  levelText: {
-    color: TEXT_PRIMARY,
-    fontSize: 11,
+  headerTitle: {
+    color: ACCENT_ORANGE,
+    fontSize: 12,
     fontWeight: '800',
+    letterSpacing: 1,
+  },
+  headerSubtitle: {
+    color: TEXT_PRIMARY,
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 4,
   },
   container: {
     padding: 16,
     gap: 16,
-    paddingBottom: 60,
+    paddingBottom: 80,
   },
   instructionCard: {
     backgroundColor: CARD_BG,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: BORDER_COLOR,
   },
   instructionText: {
     color: TEXT_PRIMARY,
     fontSize: 14,
-    lineHeight: 20,
-  },
-  highlightText: {
-    color: CODE_YELLOW,
-    fontWeight: '600',
-  },
-  codeContainer: {
-    backgroundColor: CODE_BG,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  codeBlock: {
-    marginTop: 8,
-  },
-  codeLine: {
-    fontFamily: 'monospace',
-    color: TEXT_PRIMARY,
-    fontSize: 13,
     lineHeight: 22,
   },
-  codeComment: {
+  highlightText: {
+    color: ACCENT_ORANGE,
+    fontWeight: '700',
+  },
+  codeCard: {
+    backgroundColor: CODE_BG,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    overflow: 'hidden',
+  },
+  codeBlock: {
+    padding: 12,
+    gap: 2,
+  },
+  codeLine: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  lineNumber: {
+    color: '#4B5563',
     fontFamily: 'monospace',
-    color: CODE_COMMENT,
-    fontSize: 12,
+    fontSize: 11,
+    width: 28,
+    textAlign: 'right',
+    marginRight: 12,
+    paddingTop: 2,
+  },
+  codeLineText: {
+    fontFamily: 'monospace',
+    fontSize: 13,
+    lineHeight: 22,
+    flex: 1,
   },
   inlineBlank: {
     borderWidth: 1.5,
-    borderColor: BLANK_BORDER,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    backgroundColor: '#0D1117',
-    alignSelf: 'center',
+    borderColor: ACCENT_GREEN,
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 0,
+    backgroundColor: '#161B22',
+    marginHorizontal: 2,
   },
   blankText: {
     color: ACCENT_GREEN,
@@ -311,12 +388,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  optionsSection: {
+    gap: 8,
+  },
+  optionsLabel: {
+    color: TEXT_SECONDARY,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'center',
-    marginTop: 8,
   },
   optionChip: {
     backgroundColor: CARD_BG,
@@ -340,7 +424,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: BACKGROUND,
     borderTopWidth: 1,
-    borderTopColor: '#2D3748',
+    borderTopColor: BORDER_COLOR,
     alignItems: 'center',
   },
   verifyButton: {
@@ -349,20 +433,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: ACCENT_ORANGE_DARK,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 0,
-    elevation: 4,
+  },
+  verifyButtonDisabled: {
+    backgroundColor: '#4B5563',
   },
   verifyButtonText: {
     color: '#000000',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
-  },
-  verifyButtonDisabled: {
-    backgroundColor: '#4B5563',
   },
   feedbackArea: {
     alignItems: 'center',
