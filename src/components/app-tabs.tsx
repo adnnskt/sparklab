@@ -32,6 +32,15 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="lab"
+        options={{
+          title: 'Lab',
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="code" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null,
