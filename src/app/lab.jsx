@@ -12,13 +12,14 @@ import { WebView } from 'react-native-webview';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
-const CODE_BG = '#13161C';
+const CODE_BG = '#0D1117';
+const TAB_BG = '#161B22';
+const LINE_NUM_COLOR = '#4B5563';
 const ORANGE = '#FF9600';
 const GREEN = '#10B981';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const BORDER_COLOR = '#374151';
-const CODE_COLOR = '#F59E0B';
 
 // Código PySpark inicial de exemplo
 const INITIAL_CODE = `# Criando um DataFrame em memória
@@ -192,15 +193,29 @@ export default function SparkLabPlaygroundScreen() {
           {/* Editor de Código */}
           <View style={styles.editorContainer}>
             <Text style={styles.label}>EDITOR DE CÓDIGO</Text>
-            <TextInput
-              style={styles.codeInput}
-              multiline
-              value={code}
-              onChangeText={setCode}
-              autoCapitalize="none"
-              autoCorrect={false}
-              spellCheck={false}
-            />
+            <View style={styles.editorArea}>
+              <View style={styles.editorHeader}>
+                <Text style={styles.editorFilename}>main.py</Text>
+              </View>
+              <View style={styles.codeBlock}>
+                <View style={styles.gutter}>
+                  {code.split('\n').map((_, index) => (
+                    <Text key={index} style={styles.lineNumber}>
+                      {index + 1}
+                    </Text>
+                  ))}
+                </View>
+                <TextInput
+                  style={styles.codeInput}
+                  multiline
+                  value={code}
+                  onChangeText={setCode}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Área de Saída (Console/Terminal) */}
@@ -255,7 +270,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: BORDER_COLOR,
   },
@@ -269,7 +284,8 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     fontSize: 15,
     fontWeight: '700',
-    marginTop: 2,
+    marginTop: 4,
+    lineHeight: 22,
   },
   container: {
     flex: 1,
@@ -286,25 +302,58 @@ const styles = StyleSheet.create({
   editorContainer: {
     flex: 1.2,
   },
-  codeInput: {
+  editorArea: {
     flex: 1,
     backgroundColor: CODE_BG,
     borderWidth: 1,
     borderColor: BORDER_COLOR,
     borderRadius: 12,
-    padding: 14,
-    color: CODE_COLOR,
+    overflow: 'hidden',
+  },
+  editorHeader: {
+    backgroundColor: TAB_BG,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_COLOR,
+  },
+  editorFilename: {
+    color: TEXT_SECONDARY,
+    fontFamily: 'monospace',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  codeBlock: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 12,
+  },
+  gutter: {
+    marginRight: 12,
+  },
+  lineNumber: {
+    color: LINE_NUM_COLOR,
+    fontFamily: 'monospace',
+    fontSize: 11,
+    lineHeight: 22,
+    width: 28,
+    textAlign: 'right',
+  },
+  codeInput: {
+    flex: 1,
+    color: '#D4D4D4',
     fontFamily: 'monospace',
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 22,
     textAlignVertical: 'top',
+    padding: 0,
   },
   outputContainer: {
     flex: 1,
   },
   terminal: {
     flex: 1,
-    backgroundColor: '#0D1117',
+    backgroundColor: CODE_BG,
     borderWidth: 1,
     borderColor: BORDER_COLOR,
     borderRadius: 12,
