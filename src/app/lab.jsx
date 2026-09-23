@@ -3,128 +3,24 @@ import {
     ActivityIndicator,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
+import { HTML_ENGINE } from '../engine/python-engine';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
 const CODE_BG = '#0D1117';
 const TAB_BG = '#161B22';
-const LINE_NUM_COLOR = '#4B5563';
 const ORANGE = '#FF9600';
 const GREEN = '#10B981';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const BORDER_COLOR = '#374151';
 
-// Código PySpark inicial de exemplo
-const INITIAL_CODE = `# Criando um DataFrame em memória
-data = [
-  {"nome": "Ana", "idade": 28, "cargo": "Engenheira"},
-  {"nome": "Bruno", "idade": 34, "cargo": "Cientista"},
-  {"nome": "Carla", "idade": 22, "cargo": "Analista"}
-]
-
-df = spark.createDataFrame(data)
-df.filter(df.idade > 25).show()`;
-
-// HTML/JS injetado na WebView — motor offline, sem CDN.
-// O react-native-webview despacha o evento 'message' em document (Android)
-// e em window (iOS), por isso registramos o listener nos dois alvos.
-const HTML_ENGINE = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<body>
-  <script>
-    (function () {
-      function DataFrame(data) {
-        this.$data = data || [];
-        this.$columns = this.$data[0] ? Object.keys(this.$data[0]) : [];
-        this.$values = this.$data.map(function (row) {
-          return this.$columns.map(function (c) { return row[c]; });
-        }, this);
-      }
-
-      DataFrame.prototype.filter = function (condition) {
-        var rows = this.$data;
-        if (typeof condition === 'function') {
-          return new DataFrame(rows.filter(condition));
-        }
-        // fallback: se a condição não for função, filtra por idade > 25
-        return new DataFrame(rows.filter(function (d) {
-          return d.idade > 25;
-        }));
-      };
-
-      DataFrame.prototype.show = function () {
-        var columns = this.$columns;
-        var tableStr = columns.join(" | ") + "\\n" + "-".repeat(30) + "\\n";
-        this.$values.forEach(function (row) {
-          tableStr += row.map(String).join(" | ") + "\\n";
-        });
-        logs.push(tableStr);
-      };
-
-      var logs = [];
-
-      var spark = {
-        createDataFrame: function (data) {
-          // Aceita lista de dicts (estilo PySpark) e converte em DataFrame
-          return new DataFrame(data);
-        }
-      };
-
-      function reply(status, output) {
-        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            status: status,
-            output: output
-          }));
-        }
-      }
-
-      function handleMessage(event) {
-        logs = [];
-        try {
-          var userCode = event && typeof event.data === 'string' ? event.data : '';
-          // normaliza sintaxe Python -> JS: comentários # e chaves de dict
-          userCode = userCode
-            .split('\\n')
-            .map(function (line) {
-              var hash = line.indexOf('#');
-              if (hash >= 0 && line.slice(0, hash).indexOf('"') < 0) {
-                return line.slice(0, hash);
-              }
-              return line;
-            })
-            .join('\\n');
-          eval(userCode);
-          reply('success', logs.join('\\n') || 'Código executado sem saídas visíveis.');
-        } catch (err) {
-          reply('error', err && err.message ? err.message : String(err));
-        }
-      }
-
-      window.addEventListener('message', handleMessage);
-      document.addEventListener('message', handleMessage);
-
-      // sinaliza para o React Native que o motor está pronto
-      reply('ready', 'engine ready');
-    })();
-  </script>
-</body>
-</html>
-`;
-
 export default function SparkLabPlaygroundScreen() {
-  const [code, setCode] = useState(INITIAL_CODE);
   const [output, setOutput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [engineReady, setEngineReady] = useState(false);
@@ -154,7 +50,7 @@ export default function SparkLabPlaygroundScreen() {
       setOutput('Timeout: o motor não respondeu. Verifique a execução.');
     }, 5000);
 
-    webViewRef.current.postMessage(code);
+    webViewRef.current.postMessage(JSON.stringify({ type: 'run' }));
   };
 
   const handleMessage = (event) => {
@@ -190,29 +86,23 @@ export default function SparkLabPlaygroundScreen() {
         </View>
 
         <View style={styles.container}>
-          {/* Editor de Código */}
+          {/* Editor de Código — CodeMirror dentro da WebView (render nítido, tema VS Code) */}
           <View style={styles.editorContainer}>
             <Text style={styles.label}>EDITOR DE CÓDIGO</Text>
             <View style={styles.editorArea}>
               <View style={styles.editorHeader}>
                 <Text style={styles.editorFilename}>main.py</Text>
               </View>
-              <View style={styles.codeBlock}>
-                <View style={styles.gutter}>
-                  {code.split('\n').map((_, index) => (
-                    <Text key={index} style={styles.lineNumber}>
-                      {index + 1}
-                    </Text>
-                  ))}
-                </View>
-                <TextInput
-                  style={styles.codeInput}
-                  multiline
-                  value={code}
-                  onChangeText={setCode}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  spellCheck={false}
+              <View style={styles.editorWebWrap}>
+                <WebView
+                  ref={webViewRef}
+                  originWhitelist={['*']}
+                  source={{ html: HTML_ENGINE }}
+                  onMessage={handleMessage}
+                  onLoadEnd={() => setEngineReady(true)}
+                  javaScriptEnabled
+                  domStorageEnabled
+                  style={styles.editorWeb}
                 />
               </View>
             </View>
@@ -231,19 +121,6 @@ export default function SparkLabPlaygroundScreen() {
               )}
             </View>
           </View>
-        </View>
-
-        {/* Componente invisível da engine — precisa de tamanho > 0 para o JS rodar no Android */}
-        <View style={styles.hiddenEngine} pointerEvents="none">
-          <WebView
-            ref={webViewRef}
-            originWhitelist={['*']}
-            source={{ html: HTML_ENGINE }}
-            onMessage={handleMessage}
-            onLoadEnd={() => setEngineReady(true)}
-            javaScriptEnabled
-            domStorageEnabled
-          />
         </View>
 
         {/* Rodapé com Ação */}
@@ -323,30 +200,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  codeBlock: {
+  editorWebWrap: {
     flex: 1,
-    flexDirection: 'row',
-    padding: 12,
   },
-  gutter: {
-    marginRight: 12,
-  },
-  lineNumber: {
-    color: LINE_NUM_COLOR,
-    fontFamily: 'monospace',
-    fontSize: 11,
-    lineHeight: 22,
-    width: 28,
-    textAlign: 'right',
-  },
-  codeInput: {
+  editorWeb: {
     flex: 1,
-    color: '#D4D4D4',
-    fontFamily: 'monospace',
-    fontSize: 13,
-    lineHeight: 22,
-    textAlignVertical: 'top',
-    padding: 0,
+    backgroundColor: CODE_BG,
   },
   outputContainer: {
     flex: 1,
@@ -365,14 +224,6 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 12,
     lineHeight: 18,
-  },
-  hiddenEngine: {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-    bottom: 0,
-    right: 0,
-    opacity: 0,
   },
   footer: {
     padding: 16,
