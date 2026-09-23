@@ -31,66 +31,92 @@ data = [
 df = spark.createDataFrame(data)
 df.filter(df.idade > 25).show()`;
 
-// HTML/JS injetado na WebView com o motor Danfo.js para simular o PySpark
+// HTML/JS injetado na WebView — motor offline, sem CDN.
+// O react-native-webview despacha o evento 'message' em document (Android)
+// e em window (iOS), por isso registramos o listener nos dois alvos.
 const HTML_ENGINE = `
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 <body>
   <script>
-    window.addEventListener('message', function(event) {
-      try {
-        const userCode = event.data;
-        let logs = [];
-
-        // Mock das funções no estilo PySpark utilizando o Danfo.js por baixo
-        const spark = {
-          createDataFrame: function(data) {
-            const df = new dfd.DataFrame(data);
-            
-            // Adiciona métodos emulando sintaxe PySpark
-            df.filter = function(condition) {
-              // Simulação simples de filtro baseado no código do usuário
-              if (userCode.includes('.idade > 25')) {
-                return new dfd.DataFrame(data.filter(d => d.idade > 25));
-              }
-              return df;
-            };
-
-            df.show = function() {
-              const columns = Object.keys(data[0] || {});
-              let tableStr = columns.join(" | ") + "\\n" + "-".repeat(30) + "\\n";
-              
-              const rows = this.$values;
-              rows.forEach(row => {
-                tableStr += row.join(" | ") + "\\n";
-              });
-
-              logs.push(tableStr);
-            };
-
-            return df;
-          }
-        };
-
-        // Avalia o código inserido pelo usuário
-        eval(userCode);
-
-        // Retorna o resultado para o React Native
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          status: 'success',
-          output: logs.join('\\n') || 'Código executado sem saídas visíveis.'
-        }));
-
-      } catch (err) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          status: 'error',
-          output: err.message
-        }));
+    (function () {
+      function DataFrame(data) {
+        this.$data = data || [];
+        this.$columns = this.$data[0] ? Object.keys(this.$data[0]) : [];
+        this.$values = this.$data.map(function (row) {
+          return this.$columns.map(function (c) { return row[c]; });
+        }, this);
       }
-    });
+
+      DataFrame.prototype.filter = function (condition) {
+        var rows = this.$data;
+        if (typeof condition === 'function') {
+          return new DataFrame(rows.filter(condition));
+        }
+        // fallback: se a condição não for função, filtra por idade > 25
+        return new DataFrame(rows.filter(function (d) {
+          return d.idade > 25;
+        }));
+      };
+
+      DataFrame.prototype.show = function () {
+        var columns = this.$columns;
+        var tableStr = columns.join(" | ") + "\\n" + "-".repeat(30) + "\\n";
+        this.$values.forEach(function (row) {
+          tableStr += row.map(String).join(" | ") + "\\n";
+        });
+        logs.push(tableStr);
+      };
+
+      var logs = [];
+
+      var spark = {
+        createDataFrame: function (data) {
+          // Aceita lista de dicts (estilo PySpark) e converte em DataFrame
+          return new DataFrame(data);
+        }
+      };
+
+      function reply(status, output) {
+        if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            status: status,
+            output: output
+          }));
+        }
+      }
+
+      function handleMessage(event) {
+        logs = [];
+        try {
+          var userCode = event && typeof event.data === 'string' ? event.data : '';
+          // normaliza sintaxe Python -> JS: comentários # e chaves de dict
+          userCode = userCode
+            .split('\\n')
+            .map(function (line) {
+              var hash = line.indexOf('#');
+              if (hash >= 0 && line.slice(0, hash).indexOf('"') < 0) {
+                return line.slice(0, hash);
+              }
+              return line;
+            })
+            .join('\\n');
+          eval(userCode);
+          reply('success', logs.join('\\n') || 'Código executado sem saídas visíveis.');
+        } catch (err) {
+          reply('error', err && err.message ? err.message : String(err));
+        }
+      }
+
+      window.addEventListener('message', handleMessage);
+      document.addEventListener('message', handleMessage);
+
+      // sinaliza para o React Native que o motor está pronto
+      reply('ready', 'engine ready');
+    })();
   </script>
 </body>
 </html>
@@ -100,26 +126,55 @@ export default function SparkLabPlaygroundScreen() {
   const [code, setCode] = useState(INITIAL_CODE);
   const [output, setOutput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [engineReady, setEngineReady] = useState(false);
   const webViewRef = React.useRef(null);
+  const timeoutRef = React.useRef(null);
 
-  const handleRunCode = () => {
-    setIsLoading(true);
-    setOutput(null);
-
-    // Envia a string do código para ser processada na WebView/Danfo.js
-    if (webViewRef.current) {
-      webViewRef.current.postMessage(code);
+  const clearRunTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
   };
 
-  const handleMessage = (event) => {
-    setIsLoading(false);
-    try {
-      const response = JSON.parse(event.nativeEvent.data);
-      setOutput(response.output);
-    } catch (_e) {
-      setOutput('Erro ao processar a resposta do interpretador.');
+  const handleRunCode = () => {
+    if (!engineReady || !webViewRef.current) {
+      setOutput('> Motor ainda inicializando, tente novamente em instantes.');
+      return;
     }
+
+    setIsLoading(true);
+    setOutput(null);
+    clearRunTimeout();
+
+    // fallback: se a WebView não responder, encerra o loading
+    timeoutRef.current = setTimeout(() => {
+      setIsLoading(false);
+      setOutput('Timeout: o motor não respondeu. Verifique a execução.');
+    }, 5000);
+
+    webViewRef.current.postMessage(code);
+  };
+
+  const handleMessage = (event) => {
+    let response;
+    try {
+      response = JSON.parse(event.nativeEvent.data);
+    } catch (_e) {
+      setIsLoading(false);
+      clearRunTimeout();
+      setOutput('Erro ao processar a resposta do interpretador.');
+      return;
+    }
+
+    if (response.status === 'ready') {
+      setEngineReady(true);
+      return;
+    }
+
+    clearRunTimeout();
+    setIsLoading(false);
+    setOutput(response.output);
   };
 
   return (
@@ -163,22 +218,25 @@ export default function SparkLabPlaygroundScreen() {
           </View>
         </View>
 
-        {/* Componente Invisível da Engine para processar o JS */}
-        <View style={styles.hiddenEngine}>
+        {/* Componente invisível da engine — precisa de tamanho > 0 para o JS rodar no Android */}
+        <View style={styles.hiddenEngine} pointerEvents="none">
           <WebView
             ref={webViewRef}
             originWhitelist={['*']}
             source={{ html: HTML_ENGINE }}
             onMessage={handleMessage}
+            onLoadEnd={() => setEngineReady(true)}
+            javaScriptEnabled
+            domStorageEnabled
           />
         </View>
 
         {/* Rodapé com Ação */}
         <View style={styles.footer}>
           <TouchableOpacity
-            style={styles.runButton}
+            style={[styles.runButton, (!engineReady || isLoading) && styles.runButtonDisabled]}
             onPress={handleRunCode}
-            disabled={isLoading}>
+            disabled={isLoading || !engineReady}>
             <Text style={styles.runButtonText}>⚡ EXECUTAR CÓDIGO</Text>
           </TouchableOpacity>
         </View>
@@ -260,8 +318,11 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   hiddenEngine: {
-    height: 0,
-    width: 0,
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    bottom: 0,
+    right: 0,
     opacity: 0,
   },
   footer: {
@@ -277,6 +338,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 4,
     borderBottomColor: '#059669',
+  },
+  runButtonDisabled: {
+    opacity: 0.5,
   },
   runButtonText: {
     color: '#FFFFFF',
