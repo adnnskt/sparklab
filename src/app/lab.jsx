@@ -16,7 +16,6 @@ const CODE_BG = '#0D1117';
 const TAB_BG = '#161B22';
 const ORANGE = '#FF9600';
 const GREEN = '#10B981';
-const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
 const BORDER_COLOR = '#374151';
 
@@ -77,18 +76,9 @@ export default function SparkLabPlaygroundScreen() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        {/* Cabeçalho */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>SPARK LAB · PLAYGROUND OFFLINE</Text>
-          <Text style={styles.headerSubtitle}>
-            Crie DataFrames e teste código PySpark em memória local
-          </Text>
-        </View>
-
         <View style={styles.container}>
           {/* Editor de Código — CodeMirror dentro da WebView (render nítido, tema VS Code) */}
           <View style={styles.editorContainer}>
-            <Text style={styles.label}>EDITOR DE CÓDIGO</Text>
             <View style={styles.editorArea}>
               <View style={styles.editorHeader}>
                 <Text style={styles.editorFilename}>main.py</Text>
@@ -145,29 +135,8 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER_COLOR,
-  },
-  headerTitle: {
-    color: ORANGE,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  headerSubtitle: {
-    color: TEXT_PRIMARY,
-    fontSize: 15,
-    fontWeight: '700',
-    marginTop: 4,
-    lineHeight: 22,
-  },
   container: {
     flex: 1,
-    padding: 16,
-    gap: 16,
   },
   label: {
     color: TEXT_SECONDARY,
@@ -177,7 +146,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   editorContainer: {
-    flex: 1.2,
+    flex: 4,
+    padding: 0,
   },
   editorArea: {
     flex: 1,
@@ -209,6 +179,7 @@ const styles = StyleSheet.create({
   },
   outputContainer: {
     flex: 1,
+    padding: 16,
   },
   terminal: {
     flex: 1,
@@ -226,17 +197,18 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   footer: {
-    padding: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: BORDER_COLOR,
     backgroundColor: BACKGROUND,
   },
   runButton: {
     backgroundColor: GREEN,
-    paddingVertical: 14,
+    paddingVertical: 6,
     borderRadius: 12,
     alignItems: 'center',
-    borderBottomWidth: 4,
+    borderBottomWidth: 3,
     borderBottomColor: '#059669',
   },
   runButtonDisabled: {

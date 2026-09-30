@@ -1,4 +1,4 @@
-import { CODEMIRROR_JS, PYTHON_MODE_JS } from './codemirror-source';
+import { CODEMIRROR_CSS, CODEMIRROR_JS, PYTHON_MODE_JS } from './codemirror-source';
 import skulptSource from './skulpt-source';
 
 // Tema VS Code Dark+ para o CodeMirror
@@ -9,7 +9,33 @@ html, body {
   overflow: hidden;
   background: #0D1117;
 }
-#editor { height: 100%; }
+#editor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+#fallback {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 0;
+  outline: none;
+  resize: none;
+  padding: 4px 12px;
+  background: #0D1117;
+  color: #D4D4D4;
+  caret-color: #FF9600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 22px;
+}
 .CodeMirror {
   height: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -150,23 +176,46 @@ const RUNNER = `
   var INITIAL_CODE = ${JSON.stringify(INITIAL_CODE)};
   var PRELUDE_LINES = PRELUDE.split('\\n').length;
 
-  var editor = CodeMirror(document.getElementById('editor'), {
-    value: INITIAL_CODE,
-    mode: 'python',
-    theme: 'sparklab',
-    lineNumbers: true,
-    indentUnit: 4,
-    tabSize: 4,
-    extraKeys: {
-      Tab: function (cm) {
-        if (cm.somethingSelected()) {
-          cm.indentSelection('add');
-        } else {
-          cm.replaceSelection('    ', 'end');
+  var editor = null;
+  if (typeof CodeMirror !== 'undefined') {
+    try {
+      editor = CodeMirror(document.getElementById('editor'), {
+        value: INITIAL_CODE,
+        mode: 'python',
+        theme: 'sparklab',
+        lineNumbers: true,
+        indentUnit: 4,
+        tabSize: 4,
+        extraKeys: {
+          Tab: function (cm) {
+            if (cm.somethingSelected()) {
+              cm.indentSelection('add');
+            } else {
+              cm.replaceSelection('    ', 'end');
+            }
+          }
         }
-      }
+      });
+    } catch (e) {
+      editor = null;
     }
-  });
+  }
+
+  if (!editor) {
+    // fallback editável caso o CodeMirror não inicialize
+    var host = document.getElementById('editor');
+    var textarea = document.createElement('textarea');
+    textarea.id = 'fallback';
+    textarea.spellcheck = false;
+    textarea.value = INITIAL_CODE;
+    host.appendChild(textarea);
+  }
+
+  function getCode() {
+    if (editor) return editor.getValue();
+    var ta = document.getElementById('fallback');
+    return ta ? ta.value : '';
+  }
 
   function reply(status, output) {
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -188,7 +237,7 @@ const RUNNER = `
     if (running) return;
     running = true;
     logs = '';
-    var userCode = editor.getValue();
+    var userCode = getCode();
     Sk.misceval.asyncToPromise(function () {
       return Sk.importMainWithBody('<stdin>', false, PRELUDE + '\\n' + userCode, true);
     }).then(function () {
@@ -230,6 +279,7 @@ export const HTML_ENGINE = `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>${CODEMIRROR_CSS}</style>
   <style>${THEME_CSS}</style>
 </head>
 <body>
