@@ -137,6 +137,9 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 16,
   },
   label: {
     color: TEXT_SECONDARY,
@@ -147,7 +150,6 @@ const styles = StyleSheet.create({
   },
   editorContainer: {
     flex: 4,
-    padding: 0,
   },
   editorArea: {
     flex: 1,
@@ -179,7 +181,6 @@ const styles = StyleSheet.create({
   },
   outputContainer: {
     flex: 1,
-    padding: 16,
   },
   terminal: {
     flex: 1,
