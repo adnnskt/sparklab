@@ -145,10 +145,17 @@ class DataFrame:
         for row in self._data:
             print(' | '.join(str(row[c]) for c in cols))
 
+    def display(self):
+        self.show()
+
 
 class _Spark:
     def createDataFrame(self, data):
         return DataFrame(data)
+
+
+def display(dataframe):
+    dataframe.show()
 
 
 spark = _Spark()
