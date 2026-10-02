@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -76,7 +77,10 @@ export default function SparkLabPlaygroundScreen() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}>
           {/* Editor de Código — CodeMirror dentro da WebView (render nítido, tema VS Code) */}
           <View style={styles.editorContainer}>
             <View style={styles.editorArea}>
@@ -105,13 +109,15 @@ export default function SparkLabPlaygroundScreen() {
               {isLoading ? (
                 <ActivityIndicator color={ORANGE} />
               ) : (
-                <Text style={styles.terminalText}>
-                  {output || '> Clique em "EXECUTAR CÓDIGO" para ver o resultado...'}
-                </Text>
+                <ScrollView contentContainerStyle={styles.terminalScrollContent}>
+                  <Text style={styles.terminalText}>
+                    {output || '> Clique em "EXECUTAR CÓDIGO" para ver o resultado...'}
+                  </Text>
+                </ScrollView>
               )}
             </View>
           </View>
-        </View>
+        </ScrollView>
 
         {/* Rodapé com Ação */}
         <View style={styles.footer}>
@@ -137,9 +143,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingTop: 0,
+    paddingBottom: 24,
     gap: 16,
+    flexGrow: 1,
   },
   label: {
     color: TEXT_SECONDARY,
@@ -149,7 +159,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   editorContainer: {
-    flex: 4,
+    height: 460,
   },
   editorArea: {
     flex: 1,
@@ -180,7 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: CODE_BG,
   },
   outputContainer: {
-    flex: 1,
+    height: 340,
   },
   terminal: {
     flex: 1,
@@ -189,6 +199,10 @@ const styles = StyleSheet.create({
     borderColor: BORDER_COLOR,
     borderRadius: 12,
     padding: 14,
+    justifyContent: 'center',
+  },
+  terminalScrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
   },
   terminalText: {
