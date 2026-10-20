@@ -1,0 +1,16 @@
+{
+  "id": "lesson_theory_01",
+  "type": "theory",
+  "title": "O que é um DataFrame no Spark?",
+  "subtitle": "CONCEITO · INTRODUÇÃO",
+  "conceptTitle": "💡 Em palavras simples",
+  "conceptText": "Um DataFrame é uma coleção distribuída de dados organizados em colunas nomeadas...",
+  "examples": [
+    {
+      "id": "list",
+      "label": "Via Lista / Tuplas",
+      "description": "Criação manual a partir de dados locais em memória:",
+      "code": "data = [('Ana', 28)]\ndf = spark.createDataFrame(data)"
+    }
+  ]
+}
