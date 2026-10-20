@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ScrollView,
     StyleSheet,
@@ -7,7 +7,10 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+
+import { db } from '@/lib/firebase';
 
 // Paleta de Cores SparkLab
 const BACKGROUND = '#1E232A';
@@ -108,51 +111,30 @@ function CodeHighlight({ code, style }: { code: string; style?: object }) {
   );
 }
 
-// Exemplos de código interativos por categoria
-const EXAMPLES = [
-  {
-    id: 'list',
-    label: 'Via Lista / Tuplas',
-    description: 'Criação manual a partir de dados locais em memória:',
-    code: `data = [("Ana", 28), ("Bruno", 34)]\ncolumns = ["Nome", "Idade"]\n\ndf = spark.createDataFrame(data, columns)\ndf.show()`,
-    outputType: 'table' as const,
-    columns: ['Nome', 'Idade'],
-    rows: [
-      ['Ana', '28'],
-      ['Bruno', '34'],
-    ],
-  },
-  {
-    id: 'csv',
-    label: 'Via Arquivo CSV',
-    description: 'Leitura de dados estruturados com cabeçalho:',
-    code: `df = spark.read.csv(\n  "path/usuarios.csv",\n  header=True,\n  inferSchema=True\n)\ndf.show()`,
-    outputType: 'table' as const,
-    columns: ['id', 'nome', 'cargo', 'salario'],
-    rows: [
-      ['1', 'Ana Souza', 'Engenheiro de Dados', '9200'],
-      ['2', 'Bruno Lima', 'Analista de Dados', '5800'],
-      ['3', 'Carlos Silva', 'Data Scientist', '11500'],
-    ],
-  },
-  {
-    id: 'json',
-    label: 'Via Formato JSON',
-    description: 'Carregamento de dados semi-estruturados:',
-    code: `df = spark.read.json("path/dados.json")\ndf.printSchema()`,
-    outputType: 'schema' as const,
-    schema: [
-      { name: 'root', type: 'struct', indent: 0 },
-      { name: 'id', type: 'long', indent: 1 },
-      { name: 'nome', type: 'string', indent: 1 },
-      { name: 'email', type: 'string', indent: 1 },
-      { name: 'endereco', type: 'struct', indent: 1 },
-      { name: 'rua', type: 'string', indent: 2 },
-      { name: 'cidade', type: 'string', indent: 2 },
-      { name: 'estado', type: 'string', indent: 2 },
-    ],
-  },
-];
+type LessonExample = {
+  id: string;
+  label: string;
+  description: string;
+  code: string;
+  outputType?: 'table' | 'schema';
+  columns?: string[];
+  rows?: string[][];
+  schema?: { name: string; type: string; indent: number }[];
+};
+
+type Lesson = {
+  id: string;
+  type?: string;
+  title: string;
+  subtitle: string;
+  conceptTitle?: string;
+  conceptText?: string;
+  examples: LessonExample[];
+};
+
+const LESSON_COLLECTION = 'lessons';
+const DEFAULT_LESSON_ID = 'lesson_theory_01';
+
 
 function DataFrameTable({ columns, rows }: { columns: string[]; rows: string[][] }) {
   return (
@@ -195,108 +177,230 @@ function SchemaTree({ schema }: { schema: { name: string; type: string; indent: 
   );
 }
 
+type LessonState =
+  | { status: 'ready'; lesson: Lesson }
+  | { status: 'error'; message: string };
+
 export default function TheoryConceptScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState(EXAMPLES[0]);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const lessonId = typeof params.id === 'string' && params.id ? params.id : DEFAULT_LESSON_ID;
+
+  const [result, setResult] = useState<{ key: string; state: LessonState } | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [activeExampleId, setActiveExampleId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
-  const [showOutput, setShowOutput] = useState(false);
+  const [outputKey, setOutputKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const requestKey = `${lessonId}:${reloadKey}`;
+
+    getDoc(doc(db, LESSON_COLLECTION, lessonId))
+      .then((snapshot) => {
+        if (!active) return;
+
+        if (!snapshot.exists()) {
+          setResult({
+            key: requestKey,
+            state: {
+              status: 'error',
+              message: `Aula "${lessonId}" não encontrada na coleção "${LESSON_COLLECTION}".`,
+            },
+          });
+          return;
+        }
+
+        const data = snapshot.data() ?? {};
+        setResult({
+          key: requestKey,
+          state: {
+            status: 'ready',
+            lesson: {
+              id: snapshot.id,
+              type: data.type,
+              title: data.title ?? '',
+              subtitle: data.subtitle ?? '',
+              conceptTitle: data.conceptTitle,
+              conceptText: data.conceptText,
+              examples: Array.isArray(data.examples) ? data.examples : [],
+            },
+          },
+        });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setResult({
+          key: requestKey,
+          state: {
+            status: 'error',
+            message: error instanceof Error ? error.message : 'Falha ao carregar a aula.',
+          },
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [lessonId, reloadKey]);
+
+  const requestKey = `${lessonId}:${reloadKey}`;
+  const lessonState: LessonState | null = result?.key === requestKey ? result.state : null;
+
+  const lesson = lessonState?.status === 'ready' ? lessonState.lesson : null;
+  const examples = lesson?.examples ?? [];
+  const activeTab =
+    examples.find((item) => item.id === activeExampleId) ?? examples[0] ?? null;
+
+  const outputTargetKey = activeTab ? `${lessonId}:${activeTab.id}` : null;
+  const showOutput = outputTargetKey !== null && outputKey === outputTargetKey;
 
   const handleRun = () => {
+    if (!outputTargetKey) return;
+    const key = outputTargetKey;
     setIsRunning(true);
-    setShowOutput(false);
+    setOutputKey(null);
     setTimeout(() => {
       setIsRunning(false);
-      setShowOutput(true);
+      setOutputKey(key);
     }, 1200);
   };
 
   const handleReset = () => {
-    setShowOutput(false);
+    setOutputKey(null);
   };
+
+  const hasOutput =
+    !!activeTab &&
+    ((activeTab.outputType === 'table' && !!activeTab.columns?.length && !!activeTab.rows?.length) ||
+      (activeTab.outputType === 'schema' && !!activeTab.schema?.length));
+
+  const outputRows = activeTab?.rows?.length ?? 0;
 
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
         {/* Cabeçalho */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>CONCEITO · INTRODUÇÃO</Text>
-          <Text style={styles.headerSubtitle}>O que é um DataFrame no Spark?</Text>
+          <Text style={styles.headerTitle}>{lesson?.subtitle ?? ''}</Text>
+          <Text style={styles.headerSubtitle}>{lesson?.title ?? ''}</Text>
         </View>
 
-        <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-          {/* Card Teórico / Explicação Simples */}
-          <View style={styles.conceptCard}>
-            <Text style={styles.conceptTitle}>💡 Em palavras simples</Text>
-            <Text style={styles.conceptText}>
-              Um <Text style={styles.highlightText}>DataFrame</Text> é uma coleção distribuída de dados organizados em colunas nomeadas, equivalente a uma tabela de banco de dados relacional ou uma planilha do Excel, mas otimizada para processar petabytes de dados em paralelo.
-            </Text>
+        {lessonState === null && (
+          <View style={styles.stateContainer}>
+            <Text style={styles.stateEmoji}>⏳</Text>
+            <Text style={styles.stateTitle}>Carregando aula...</Text>
+            <Text style={styles.stateText}>{`Buscando "${lessonId}" no Firebase.`}</Text>
           </View>
+        )}
 
-          {/* Seção Interativa */}
-          <View style={styles.interactiveSection}>
-            <Text style={styles.sectionTitle}>EXEMPLOS PRÁTICOS DE CRIAÇÃO</Text>
-            <Text style={styles.sectionSubtitle}>
-              Selecione uma opção abaixo para ver o código correspondente:
-            </Text>
+        {lessonState?.status === 'error' && (
+          <View style={styles.stateContainer}>
+            <Text style={styles.stateEmoji}>⚠️</Text>
+            <Text style={styles.stateTitle}>Não foi possível carregar</Text>
+            <Text style={styles.stateText}>{lessonState.message}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => setReloadKey((key) => key + 1)}>
+              <Text style={styles.retryButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-            {/* Abas Selecionáveis */}
-            <View style={styles.tabsContainer}>
-              {EXAMPLES.map((item) => {
-                const isActive = activeTab.id === item.id;
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.tabButton, isActive && styles.tabButtonActive]}
-                    onPress={() => { setActiveTab(item); setShowOutput(false); setIsRunning(false); }}>
-                    <Text style={[styles.tabButtonText, isActive && styles.tabTextActive]}>
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Exibição do Código Selecionado */}
-            <View style={styles.codeCard}>
-              <Text style={styles.codeDescription}>{activeTab.description}</Text>
-              <View style={styles.codeBlock}>
-                <CodeHighlight code={activeTab.code} />
+        {lesson && (
+          <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+            {/* Card Teórico / Explicação Simples */}
+            {(lesson.conceptTitle || lesson.conceptText) && (
+              <View style={styles.conceptCard}>
+                {!!lesson.conceptTitle && (
+                  <Text style={styles.conceptTitle}>{lesson.conceptTitle}</Text>
+                )}
+                {!!lesson.conceptText && <Text style={styles.conceptText}>{lesson.conceptText}</Text>}
               </View>
+            )}
 
-              {/* Botão Executar */}
-              {!showOutput && (
-                <TouchableOpacity
-                  style={[styles.runButton, isRunning && styles.runButtonLoading]}
-                  disabled={isRunning}
-                  onPress={handleRun}>
-                  <Text style={styles.runButtonText}>
-                    {isRunning ? '⏳ Executando...' : '▶  Executar Código'}
-                  </Text>
-                </TouchableOpacity>
-              )}
+            {/* Seção Interativa */}
+            {examples.length > 0 && activeTab && (
+              <View style={styles.interactiveSection}>
+                <Text style={styles.sectionTitle}>EXEMPLOS PRÁTICOS DE CRIAÇÃO</Text>
+                <Text style={styles.sectionSubtitle}>
+                  Selecione uma opção abaixo para ver o código correspondente:
+                </Text>
 
-              {/* Saída do Jupyter Notebook */}
-              {showOutput && (
-                <View style={styles.outputContainer}>
-                  <View style={styles.outputHeader}>
-                    <Text style={styles.outputLabel}>📄 Output [{activeTab.id === 'list' ? '2' : activeTab.id === 'csv' ? '3' : '1'} rows]</Text>
-                    <TouchableOpacity onPress={handleReset}>
-                      <Text style={styles.outputReset}>Limpar</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.outputBlock}>
-                    {activeTab.outputType === 'table' && activeTab.columns && activeTab.rows && (
-                      <DataFrameTable columns={activeTab.columns} rows={activeTab.rows} />
-                    )}
-                    {activeTab.outputType === 'schema' && activeTab.schema && (
-                      <SchemaTree schema={activeTab.schema} />
-                    )}
-                  </View>
+                {/* Abas Selecionáveis */}
+                <View style={styles.tabsContainer}>
+                  {examples.map((item) => {
+                    const isActive = activeTab.id === item.id;
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                        onPress={() => {
+                          setActiveExampleId(item.id);
+                          setOutputKey(null);
+                          setIsRunning(false);
+                        }}>
+                        <Text style={[styles.tabButtonText, isActive && styles.tabTextActive]}>
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-              )}
-            </View>
-          </View>
-        </ScrollView>
+
+                {/* Exibição do Código Selecionado */}
+                <View style={styles.codeCard}>
+                  <Text style={styles.codeDescription}>{activeTab.description}</Text>
+                  <View style={styles.codeBlock}>
+                    <CodeHighlight code={activeTab.code} />
+                  </View>
+
+                  {/* Botão Executar */}
+                  {!showOutput && (
+                    <TouchableOpacity
+                      style={[styles.runButton, isRunning && styles.runButtonLoading]}
+                      disabled={isRunning}
+                      onPress={handleRun}>
+                      <Text style={styles.runButtonText}>
+                        {isRunning ? '⏳ Executando...' : '▶  Executar Código'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Saída do Jupyter Notebook */}
+                  {showOutput && (
+                    <View style={styles.outputContainer}>
+                      <View style={styles.outputHeader}>
+                        <Text style={styles.outputLabel}>
+                          📄 Output{outputRows > 0 ? ` [${outputRows} rows]` : ''}
+                        </Text>
+                        <TouchableOpacity onPress={handleReset}>
+                          <Text style={styles.outputReset}>Limpar</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.outputBlock}>
+                        {!hasOutput && (
+                          <Text style={styles.outputEmpty}>
+                            Código executado sem saída estruturada para exibir.
+                          </Text>
+                        )}
+                        {activeTab.outputType === 'table' &&
+                          !!activeTab.columns?.length &&
+                          !!activeTab.rows?.length && (
+                            <DataFrameTable columns={activeTab.columns} rows={activeTab.rows} />
+                          )}
+                        {activeTab.outputType === 'schema' && !!activeTab.schema?.length && (
+                          <SchemaTree schema={activeTab.schema} />
+                        )}
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+          </ScrollView>
+        )}
 
         {/* Rodapé de Conclusão */}
         <View style={styles.footer}>
@@ -580,5 +684,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  // Estados de carregamento / erro
+  stateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 8,
+  },
+  stateEmoji: {
+    fontSize: 32,
+  },
+  stateTitle: {
+    color: TEXT_PRIMARY,
+    fontSize: 16,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  stateText: {
+    color: TEXT_SECONDARY,
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: ORANGE,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 12,
+    borderBottomWidth: 3,
+    borderBottomColor: '#B36500',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  outputEmpty: {
+    color: '#6B7280',
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
