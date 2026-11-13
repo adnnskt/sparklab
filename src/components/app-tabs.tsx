@@ -47,6 +47,19 @@ export default function AppTabs() {
         name="explore"
         options={{
           href: null,
+          // Em SDK 58, `href: null` só marca a rota como oculta para o
+          // redirecionamento e não esconde mais o item da tab bar (como fazia
+          // no SDK 57). Escondemos o item explicitamente.
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      {/* O fluxo de exercícios é aberto pela árvore de habilidades, não pela tab
+          bar. Declarar a rota aqui evita que o expo-router 58 redirecione de
+          volta para a aba inicial quando ela é focada, mantendo o item invisível. */}
+      <Tabs.Screen
+        name="(exercises)"
+        options={{
+          tabBarItemStyle: { display: 'none' },
         }}
       />
     </Tabs>

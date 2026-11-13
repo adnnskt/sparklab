@@ -35,6 +35,11 @@ export default function AppTabs() {
           <TabTrigger name="explore" href="/explore" asChild>
             <TabButton>Explore</TabButton>
           </TabTrigger>
+          {/* O fluxo de exercícios (theory, quest, ...) é aberto pela árvore de
+              habilidades. O expo-router 58 exige que a rota esteja declarada em
+              um TabTrigger, caso contrário ele redireciona de volta para a aba
+              inicial. O gatilho fica oculto para não aparecer na barra. */}
+          <TabTrigger name="(exercises)" href="/theory" style={{ display: 'none' }} />
         </CustomTabList>
       </TabList>
     </Tabs>
