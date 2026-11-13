@@ -9,14 +9,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const BACKGROUND = '#1E232A';
-const CARD_BG = '#2A303C';
-const ORANGE = '#FF9600';
-const GREEN = '#10B981';
+const BACKGROUND = '#12151A';
+const CARD_BG = '#1E232E';
+const ORANGE = '#F5820A';
+const GREEN = '#059669';
 const RED = '#EF4444';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 
 const SYN = {
   keyword:   '#569CD6',
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor: ORANGE,
-    backgroundColor: '#382818',
+    backgroundColor: '#342518',
   },
   cardCorrect: {
     borderColor: GREEN,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   textWhite: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
   },
   footer: {
     position: 'absolute',

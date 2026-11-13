@@ -14,7 +14,7 @@ export default function AppTabs() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#FF9600',
+        tabBarActiveTintColor: '#F5820A',
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
           backgroundColor: colors.background,

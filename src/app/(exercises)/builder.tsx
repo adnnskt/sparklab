@@ -9,15 +9,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const BACKGROUND = '#1E232A';
-const CARD_BG = '#2A303C';
-const CODE_BG = '#0D1117';
-const ORANGE = '#FF9600';
-const GREEN = '#10B981';
+const BACKGROUND = '#12151A';
+const CARD_BG = '#1E232E';
+const CODE_BG = '#181C24';
+const ORANGE = '#F5820A';
+const GREEN = '#059669';
 const RED = '#EF4444';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 
 const SYN = {
   keyword:   '#569CD6',
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     borderColor: RED,
   },
   editorHeader: {
-    backgroundColor: '#161B22',
+    backgroundColor: '#1E232E',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     minHeight: 140,
   },
   placeholderText: {
-    color: '#4B5563',
+    color: '#9CA3AF',
     fontSize: 13,
     fontStyle: 'italic',
   },
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   lineNumber: {
-    color: '#4B5563',
+    color: '#9CA3AF',
     fontFamily: 'monospace',
     fontSize: 11,
     width: 28,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 4,
-    borderBottomColor: '#1A1D24',
+    borderBottomColor: '#12151A',
   },
   blockChipText: {
     fontFamily: 'monospace',
@@ -362,13 +362,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
   verifyButton: {
-    backgroundColor: '#4B5563',
+    backgroundColor: '#2D3545',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     backgroundColor: ORANGE,
   },
   verifyButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,

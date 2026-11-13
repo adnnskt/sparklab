@@ -9,14 +9,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const BACKGROUND = '#1E232A';
-const CARD_BG = '#2A303C';
-const CODE_BG = '#0D1117';
-const ACCENT_GREEN = '#10B981';
-const ACCENT_ORANGE = '#FF9600';
+const BACKGROUND = '#12151A';
+const CARD_BG = '#1E232E';
+const CODE_BG = '#181C24';
+const ACCENT_GREEN = '#059669';
+const ACCENT_ORANGE = '#F5820A';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 const ACCENT_RED = '#EF4444';
 
 const SYN = {
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   lineNumber: {
-    color: '#4B5563',
+    color: '#9CA3AF',
     fontFamily: 'monospace',
     fontSize: 11,
     width: 28,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 0,
-    backgroundColor: '#161B22',
+    backgroundColor: '#1E232E',
     marginHorizontal: 2,
   },
   blankText: {
@@ -435,10 +435,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verifyButtonDisabled: {
-    backgroundColor: '#4B5563',
+    backgroundColor: '#9CA3AF',
   },
   verifyButtonText: {
-    color: '#000000',
+    color: '#12151A',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,

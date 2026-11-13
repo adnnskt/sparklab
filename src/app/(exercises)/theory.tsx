@@ -13,14 +13,14 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Paleta de Cores SparkLab
-const BACKGROUND = '#1E232A';
-const CARD_BG = '#2A303C';
-const CODE_BG = '#13161C';
-const ORANGE = '#FF9600';
-const GREEN = '#10B981';
+const BACKGROUND = '#12151A';
+const CARD_BG = '#1E232E';
+const CODE_BG = '#181C24';
+const ORANGE = '#F5820A';
+const GREEN = '#059669';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 
 // Cores de Syntax Highlighting (VS Code Dark+)
 const SYN = {
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 10,
     borderBottomWidth: 5,
-    borderBottomColor: '#1A1D24',
+    borderBottomColor: '#12151A',
   },
   conceptTitle: {
     color: ORANGE,
@@ -495,12 +495,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     borderBottomWidth: 3,
-    borderBottomColor: '#1A1D24',
+    borderBottomColor: '#12151A',
   },
   tabButtonActive: {
-    backgroundColor: '#382818',
+    backgroundColor: '#342518',
     borderColor: ORANGE,
-    borderBottomColor: '#B36500',
+    borderBottomColor: '#B85E00',
   },
   tabButtonText: {
     color: TEXT_SECONDARY,
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   codeBlock: {
-    backgroundColor: '#0D1117',
+    backgroundColor: '#12151A',
     padding: 12,
     borderRadius: 8,
     gap: 2,
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   lineNumber: {
-    color: '#4B5563',
+    color: '#9CA3AF',
     fontFamily: 'monospace',
     fontSize: 11,
     width: 24,
@@ -559,14 +559,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     borderBottomWidth: 3,
-    borderBottomColor: '#059669',
+    borderBottomColor: '#047857',
   },
   runButtonLoading: {
-    backgroundColor: '#6B7280',
-    borderBottomColor: '#4B5563',
+    backgroundColor: '#2D3545',
+    borderBottomColor: '#12151A',
   },
   runButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 0.5,
@@ -715,10 +715,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 12,
     borderBottomWidth: 3,
-    borderBottomColor: '#B36500',
+    borderBottomColor: '#B85E00',
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 13,
     fontWeight: '800',
   },

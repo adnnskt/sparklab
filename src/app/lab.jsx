@@ -12,13 +12,13 @@ import { WebView } from 'react-native-webview';
 import { HTML_ENGINE } from '../engine/python-engine';
 
 // Paleta de Cores SparkLab
-const BACKGROUND = '#1E232A';
-const CODE_BG = '#0D1117';
-const TAB_BG = '#161B22';
-const ORANGE = '#FF9600';
-const GREEN = '#10B981';
+const BACKGROUND = '#12151A';
+const CODE_BG = '#181C24';
+const TAB_BG = '#1E232E';
+const ORANGE = '#F5820A';
+const GREEN = '#059669';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 
 export default function SparkLabPlaygroundScreen() {
   const [output, setOutput] = useState(null);
@@ -224,13 +224,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderBottomWidth: 3,
-    borderBottomColor: '#059669',
+    borderBottomColor: '#047857',
   },
   runButtonDisabled: {
     opacity: 0.5,
   },
   runButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: 0.5,

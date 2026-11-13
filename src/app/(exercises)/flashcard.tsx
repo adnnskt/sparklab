@@ -8,14 +8,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const BACKGROUND = '#1E232A';
-const CARD_BG = '#2A303C';
-const ORANGE = '#FF9600';
-const GREEN = '#10B981';
+const BACKGROUND = '#12151A';
+const CARD_BG = '#1E232E';
+const ORANGE = '#F5820A';
+const GREEN = '#059669';
 const RED = '#EF4444';
 const TEXT_PRIMARY = '#F3F4F6';
 const TEXT_SECONDARY = '#9CA3AF';
-const BORDER_COLOR = '#374151';
+const BORDER_COLOR = '#2D3545';
 
 const SYN = {
   keyword:   '#569CD6',
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     borderBottomWidth: 6,
-    borderBottomColor: '#1A1D24',
+    borderBottomColor: '#12151A',
   },
   questionText: {
     color: TEXT_PRIMARY,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     borderBottomWidth: 4,
-    borderBottomColor: '#1A1D24',
+    borderBottomColor: '#12151A',
   },
   optionCorrect: {
     backgroundColor: '#064E3B',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   textWhite: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
   },
   footer: {
     position: 'absolute',
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#7F1D1D',
   },
   feedbackText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontWeight: '800',
     fontSize: 15,
     textAlign: 'center',
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     opacity: 1,
   },
   nextButtonText: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.5,

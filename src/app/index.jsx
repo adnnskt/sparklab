@@ -2,12 +2,12 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const ORANGE = '#FF9600';
-const ORANGE_LIGHT = '#FFC266';
-const BG = '#1A1D22';
-const CIRCLE_BG = '#2A2E37';
-const CIRCLE_BORDER = '#3A3F4D';
-const CIRCLE_LOCKED = '#1E2127';
+const ORANGE = '#F5820A';
+const ORANGE_LIGHT = '#FFA94D';
+const BG = '#12151A';
+const CIRCLE_BG = '#1E232E';
+const CIRCLE_BORDER = '#2D3545';
+const CIRCLE_LOCKED = '#181C24';
 
 const SKILL_TREE = [
   { id: '1', title: 'Sintaxe & Tipos', status: 'completed', route: '/(exercises)/theory' },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 24,
     fontWeight: '800',
   },
@@ -157,15 +157,15 @@ const styles = StyleSheet.create({
   },
   circleLocked: {
     backgroundColor: CIRCLE_LOCKED,
-    borderColor: '#252830',
+    borderColor: '#2D3545',
   },
   circleNumber: {
-    color: '#6B7280',
+    color: '#9CA3AF',
     fontSize: 14,
     fontWeight: '700',
   },
   circleNumberLight: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
   },
   titleColumn: {
     flex: 1,
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   nodeTitle: {
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     fontSize: 14,
     fontWeight: '600',
   },
   textLocked: {
-    color: '#4B5563',
+    color: '#9CA3AF',
   },
   checkMark: {
     color: ORANGE,

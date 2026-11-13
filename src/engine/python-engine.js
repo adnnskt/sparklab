@@ -7,7 +7,7 @@ html, body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #0D1117;
+  background: #181C24;
 }
 #editor {
   position: absolute;
@@ -29,9 +29,9 @@ html, body {
   outline: none;
   resize: none;
   padding: 4px 12px;
-  background: #0D1117;
+  background: #181C24;
   color: #D4D4D4;
-  caret-color: #FF9600;
+  caret-color: #F5820A;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 13px;
   line-height: 22px;
@@ -42,20 +42,20 @@ html, body {
   font-size: 13px;
   line-height: 22px;
   color: #D4D4D4;
-  background: #0D1117;
+  background: #181C24;
 }
 .CodeMirror-gutters {
-  background: #0D1117;
-  border-right: 1px solid #374151;
+  background: #181C24;
+  border-right: 1px solid #2D3545;
   min-width: 36px;
 }
 .CodeMirror-linenumber {
-  color: #4B5563;
+  color: #9CA3AF;
   font-size: 11px;
   padding: 0 8px 0 4px;
 }
-.CodeMirror-cursor { border-left: 2px solid #FF9600; }
-.CodeMirror-activeline-background { background: #2A2A2A; }
+.CodeMirror-cursor { border-left: 2px solid #F5820A; }
+.CodeMirror-activeline-background { background: #1E232E; }
 div.CodeMirror-selected { background: #264F78; }
 .CodeMirror-focused div.CodeMirror-selected { background: #264F78; }
 .CodeMirror-line::selection,
