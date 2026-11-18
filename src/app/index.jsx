@@ -3,8 +3,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 
+// Acento usado em textos e bordas finas (contraste ~7:1 sobre o fundo, ok para texto)
 const ORANGE = '#F5820A';
-const ORANGE_DARK = '#B85E00';
+// Preenchimento dos nós: laranja queimado, ~30% menos luminoso que o acento.
+// Áreas grandes e chapadas em #F5820A ofuscam sobre #12151A.
+const NODE_FILL = '#B86E12';
+const NODE_FILL_RIM = '#D08C3F';
+const NODE_FILL_DARK = '#7A470A';
 const BG = '#12151A';
 const CIRCLE_BG = '#1E232E';
 const CIRCLE_BORDER = '#2D3545';
@@ -157,14 +162,14 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   circleCompleted: {
-    backgroundColor: ORANGE,
-    borderColor: '#FFA94D',
-    borderBottomColor: ORANGE_DARK,
+    backgroundColor: NODE_FILL,
+    borderColor: NODE_FILL_RIM,
+    borderBottomColor: NODE_FILL_DARK,
   },
   circleActive: {
-    backgroundColor: ORANGE,
-    borderColor: '#FFFFFF',
-    borderBottomColor: ORANGE_DARK,
+    backgroundColor: NODE_FILL,
+    borderColor: '#F3F4F6',
+    borderBottomColor: NODE_FILL_DARK,
     transform: [{ scale: 1.08 }],
   },
   circleLocked: {
@@ -188,7 +193,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   titleBadgeActive: {
-    borderColor: ORANGE,
+    borderColor: NODE_FILL_RIM,
     backgroundColor: '#1E222A',
   },
   nodeTitle: {
