@@ -1,23 +1,33 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 
 const ORANGE = '#F5820A';
-const ORANGE_LIGHT = '#FFA94D';
+const ORANGE_DARK = '#B85E00';
 const BG = '#12151A';
 const CIRCLE_BG = '#1E232E';
 const CIRCLE_BORDER = '#2D3545';
 const CIRCLE_LOCKED = '#181C24';
+const TEXT_PRIMARY = '#F3F4F6';
+const TEXT_SECONDARY = '#9CA3AF';
 
+// Trilha de lições, com ícone do MaterialCommunityIcons por nó
 const SKILL_TREE = [
-  { id: '1', title: 'Sintaxe & Tipos', status: 'completed', route: '/(exercises)/theory' },
-  { id: '2', title: 'Variáveis & Val/Var', status: 'completed' },
-  { id: '3', title: 'Classes & Objetos', status: 'active' },
-  { id: '4', title: 'Funções & Lambdas', status: 'locked' },
-  { id: '5', title: 'Métodos Avançados', status: 'locked' },
+  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', status: 'completed', route: '/(exercises)/theory' },
+  { id: '2', title: 'Variáveis & Val/Var', icon: 'variable', status: 'completed' },
+  { id: '3', title: 'Classes & Objetos', icon: 'cube-outline', status: 'active' },
+  { id: '4', title: 'Funções & Lambdas', icon: 'function-variant', status: 'locked' },
+  { id: '5', title: 'Métodos Avançados', icon: 'code-tags', status: 'locked' },
+  { id: '6', title: 'Streaming de Dados', icon: 'flash', status: 'locked' },
+  { id: '7', title: 'Deploy em Nuvem', icon: 'cloud-outline', status: 'locked' },
 ];
 
-function SkillNode({ node, index, isLast }) {
+// Deslocamento horizontal em zigue-zague (padrão Duolingo): curva senoidal
+// suave ao longo da lista, com amplitude de 90px para cada lado do centro.
+const getPositionOffset = (index) => Math.sin(index * 1.2) * 90;
+
+function SkillNode({ node, index }) {
   const router = useRouter();
   const isCompleted = node.status === 'completed';
   const isActive = node.status === 'active';
@@ -25,40 +35,36 @@ function SkillNode({ node, index, isLast }) {
   const hasRoute = !!node.route;
 
   return (
-    <View style={styles.nodeRow}>
-      {/* Linha conectora */}
-      <View style={styles.nodeColumn}>
-        <View style={[styles.line, isLast && styles.lineHidden]} />
-      </View>
-
-      {/* Círculo */}
-      <View style={styles.nodeColumn}>
+    <View style={styles.nodeWrapper}>
+      <View style={[styles.nodeCenterer, { transform: [{ translateX: getPositionOffset(index) }] }]}>
         <TouchableOpacity
           style={[
-            styles.circle,
+            styles.circleNode,
             isCompleted && styles.circleCompleted,
             isActive && styles.circleActive,
             isLocked && styles.circleLocked,
           ]}
           disabled={isLocked || !hasRoute}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={node.title}
           onPress={() => hasRoute && router.push(node.route)}>
-          <Text style={[
-            styles.circleNumber,
-            isCompleted && styles.circleNumberLight,
-            isActive && styles.circleNumberLight,
-          ]}>
-            {index + 1}
-          </Text>
+          {isLocked ? (
+            <Feather name="lock" size={24} color="#6B7280" />
+          ) : isCompleted ? (
+            <MaterialCommunityIcons name="check" size={28} color="#FFFFFF" />
+          ) : (
+            <MaterialCommunityIcons
+              name={node.icon || 'code-braces'}
+              size={28}
+              color={isActive ? '#FFFFFF' : TEXT_SECONDARY}
+            />
+          )}
         </TouchableOpacity>
-      </View>
 
-      {/* Título */}
-      <View style={styles.titleColumn}>
-        <Text style={[styles.nodeTitle, isLocked && styles.textLocked]}>
-          {node.title}
-        </Text>
-        {isCompleted && <Text style={styles.checkMark}>✓</Text>}
+        <View style={[styles.titleBadge, isActive && styles.titleBadgeActive]}>
+          <Text style={[styles.nodeTitle, isLocked && styles.textLocked]}>{node.title}</Text>
+        </View>
       </View>
     </View>
   );
@@ -67,21 +73,16 @@ function SkillNode({ node, index, isLast }) {
 export default function HomeScreen() {
   return (
     <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>SparkLab</Text>
-            <Text style={styles.headerSubtitle}>trilha de spark</Text>
-          </View>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>SparkLab</Text>
+          <Text style={styles.headerSubtitle}>Trilha de Engenharia de Dados</Text>
+        </View>
 
-          <View style={styles.trail}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.trailContainer}>
             {SKILL_TREE.map((node, index) => (
-              <SkillNode
-                key={node.id}
-                node={node}
-                index={index}
-                isLast={index === SKILL_TREE.length - 1}
-              />
+              <SkillNode key={node.id} node={node} index={index} />
             ))}
           </View>
         </ScrollView>
@@ -98,94 +99,106 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  scrollContent: {
-    padding: 20,
-  },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: CIRCLE_BORDER,
+    backgroundColor: BG,
+    zIndex: 10,
   },
   headerTitle: {
-    color: '#F3F4F6',
-    fontSize: 24,
+    color: TEXT_PRIMARY,
+    fontSize: 22,
     fontWeight: '800',
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
     color: ORANGE,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 4,
+    letterSpacing: 1.2,
+    marginTop: 2,
   },
-  trail: {
-    paddingLeft: 24,
+  scrollContent: {
+    paddingVertical: 32,
+    paddingHorizontal: 20,
   },
-  nodeRow: {
-    flexDirection: 'row',
+  trailContainer: {
     alignItems: 'center',
+    width: '100%',
   },
-  nodeColumn: {
+  nodeWrapper: {
+    width: '100%',
     alignItems: 'center',
-    width: 40,
+    marginVertical: 24,
   },
-  line: {
-    width: 2,
-    height: 40,
-    backgroundColor: ORANGE,
+  nodeCenterer: {
+    alignItems: 'center',
+    width: 140,
   },
-  lineHidden: {
-    backgroundColor: 'transparent',
-  },
-  circle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  circleNode: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     backgroundColor: CIRCLE_BG,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: CIRCLE_BORDER,
     justifyContent: 'center',
     alignItems: 'center',
+    // Profundidade 3D: borda inferior mais espessa e escura
+    borderBottomWidth: 6,
+    borderBottomColor: '#15181F',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
   circleCompleted: {
     backgroundColor: ORANGE,
-    borderColor: ORANGE,
+    borderColor: '#FFA94D',
+    borderBottomColor: ORANGE_DARK,
   },
   circleActive: {
-    backgroundColor: CIRCLE_BG,
-    borderColor: ORANGE,
+    backgroundColor: ORANGE,
+    borderColor: '#FFFFFF',
+    borderBottomColor: ORANGE_DARK,
+    transform: [{ scale: 1.08 }],
   },
   circleLocked: {
     backgroundColor: CIRCLE_LOCKED,
-    borderColor: '#2D3545',
+    borderColor: CIRCLE_BG,
+    borderBottomColor: '#0D0F12',
   },
-  circleNumber: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  circleNumberLight: {
-    color: '#F3F4F6',
-  },
-  titleColumn: {
-    flex: 1,
-    flexDirection: 'row',
+  titleBadge: {
+    marginTop: 10,
+    backgroundColor: CIRCLE_BG,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: CIRCLE_BORDER,
+    maxWidth: 160,
     alignItems: 'center',
-    paddingLeft: 12,
-    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    elevation: 2,
+  },
+  titleBadgeActive: {
+    borderColor: ORANGE,
+    backgroundColor: '#1E222A',
   },
   nodeTitle: {
-    color: '#F3F4F6',
-    fontSize: 14,
-    fontWeight: '600',
+    color: TEXT_PRIMARY,
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   textLocked: {
-    color: '#9CA3AF',
-  },
-  checkMark: {
-    color: ORANGE,
-    fontSize: 12,
-    fontWeight: '800',
-    marginLeft: 8,
+    color: TEXT_SECONDARY,
+    opacity: 0.7,
   },
 });
