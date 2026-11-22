@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /lessons/{lessonId} {
+      allow read: if true;      // app lê sem login
+      allow write: if false;    // escrita só via Admin SDK (npm run db:upload)
+    }
+
+    match /carrossel/{slideId} {
+      allow read: if true;      // app lê sem login
+      allow write: if false;    // escrita só via Admin SDK (npm run db:upload)
+    }
+  }
+}

@@ -19,7 +19,7 @@ const TEXT_SECONDARY = '#9CA3AF';
 
 // Trilha de lições, com ícone do MaterialCommunityIcons por nó
 const SKILL_TREE = [
-  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', status: 'completed', route: '/(exercises)/theory' },
+  { id: '1', title: 'Sintaxe & Tipos', icon: 'code-braces', status: 'completed', route: '/(exercises)/carousel' },
   { id: '2', title: 'Variáveis & Val/Var', icon: 'variable', status: 'completed' },
   { id: '3', title: 'Classes & Objetos', icon: 'cube-outline', status: 'active' },
   { id: '4', title: 'Funções & Lambdas', icon: 'function-variant', status: 'locked' },

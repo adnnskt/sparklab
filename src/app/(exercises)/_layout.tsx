@@ -15,6 +15,7 @@ export default function ExercisesLayout() {
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.background },
       }}>
+      <Stack.Screen name="carousel" options={{ title: 'Módulo 1', headerShown: false }} />
       <Stack.Screen name="theory" options={{ title: 'Teoria', headerShown: false }} />
       <Stack.Screen name="quest_1" options={{ title: 'Questão 1', headerShown: false }} />
       <Stack.Screen name="matching" options={{ title: 'Matching', headerShown: false }} />
