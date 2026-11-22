@@ -45,7 +45,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "db:upload": "node ./scripts/upload-json.js",
-    "db:lessons": "node ./scripts/upload-json.js lessons data/lessons"
+    "db:lessons": "node ./scripts/upload-json.js lessons data/lessons",
+    "db:carrossel": "node ./scripts/upload-json.js carrossel data/carrossel"
   },
   "private": true
 }

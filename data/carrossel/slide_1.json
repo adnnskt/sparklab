@@ -1,0 +1,20 @@
+{
+  "id": "slide_1",
+  "layout": "comparison_ram",
+  "title": "Por que o Spark?",
+  "subtitle": "Módulo 0 • Introdução",
+  "leftCard": {
+    "label": "1 Máquina Só",
+    "status": "Sobrecarga (Disco)",
+    "metric": "GBs",
+    "barPercent": 95
+  },
+  "rightCard": {
+    "label": "Cluster Spark",
+    "status": "Paralelo (RAM)",
+    "metric": "TBs",
+    "barPercent": 35
+  },
+  "badgeText": "Até 100x mais rápido na memória RAM",
+  "body": "Quando os dados crescem, um único computador trava. O Spark divide o trabalho pesado entre várias máquinas ao mesmo tempo."
+}
