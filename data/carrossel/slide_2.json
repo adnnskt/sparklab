@@ -1,0 +1,22 @@
+{
+  "id": "slide_2",
+  "layout": "architecture_map",
+  "title": "O Maestro e a Orquestra",
+  "subtitle": "Módulo 0 • Arquitetura",
+  "driver": {
+    "role": "Driver",
+    "tag": "Maestro",
+    "description": "Lê o código, monta o plano e divide as tarefas.",
+    "icon": "git-network-outline"
+  },
+  "executors": {
+    "role": "Executors",
+    "tag": "Em Paralelo",
+    "description": "Executam os blocos de dados na memória e devolvem o resultado.",
+    "count": 3,
+    "labelPrefix": "Exec",
+    "icon": "cpu-64-bit"
+  },
+  "badgeText": "1 Driver coordena vários Executors no cluster",
+  "body": "Você envia o código ao Driver; ele fatia o trabalho e envia para os Executors rodarem juntos."
+}
