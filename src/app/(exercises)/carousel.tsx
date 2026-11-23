@@ -15,12 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { collection, getDocs } from 'firebase/firestore';
 
+import { ArchitectureMapSlide } from '@/components/carousel/architecture-map-slide';
 import { ComparisonRamSlide } from '@/components/carousel/comparison-ram-slide';
 import { GenericSlide } from '@/components/carousel/generic-slide';
 import type {
+  ArchitectureMapSlideData,
   CarouselSlide,
   ComparisonCard,
   ComparisonRamSlideData,
+  DriverInfo,
+  ExecutorsInfo,
 } from '@/components/carousel/types';
 import { db } from '@/lib/firebase';
 
@@ -219,6 +223,9 @@ function renderSlide(slide: CarouselSlide, width: number) {
   if (isComparisonRamSlide(slide)) {
     return <ComparisonRamSlide data={slide} width={width} />;
   }
+  if (isArchitectureMapSlide(slide)) {
+    return <ArchitectureMapSlide data={slide} width={width} />;
+  }
   return <GenericSlide data={slide} width={width} />;
 }
 
@@ -227,6 +234,17 @@ function isComparisonRamSlide(slide: CarouselSlide): slide is ComparisonRamSlide
     slide.layout === 'comparison_ram' &&
     !!slide.leftCard &&
     !!slide.rightCard &&
+    typeof slide.subtitle === 'string' &&
+    typeof slide.body === 'string' &&
+    typeof slide.badgeText === 'string'
+  );
+}
+
+function isArchitectureMapSlide(slide: CarouselSlide): slide is ArchitectureMapSlideData {
+  return (
+    slide.layout === 'architecture_map' &&
+    !!slide.driver &&
+    !!slide.executors &&
     typeof slide.subtitle === 'string' &&
     typeof slide.body === 'string' &&
     typeof slide.badgeText === 'string'
@@ -246,6 +264,8 @@ function normalizeSlide(id: string, data: Record<string, unknown>): CarouselSlid
     badgeText: asString(data.badgeText) || undefined,
     leftCard: asCard(data.leftCard),
     rightCard: asCard(data.rightCard),
+    driver: asDriver(data.driver),
+    executors: asExecutors(data.executors),
   };
 }
 
@@ -263,6 +283,34 @@ function asCard(value: unknown): ComparisonCard | undefined {
     status: asString(card.status),
     metric: asString(card.metric),
     barPercent: Number.isFinite(rawPercent) ? rawPercent : 0,
+  };
+}
+
+function asDriver(value: unknown): DriverInfo | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const driver = value as Record<string, unknown>;
+
+  return {
+    role: asString(driver.role),
+    tag: asString(driver.tag),
+    description: asString(driver.description),
+    icon: asString(driver.icon),
+  };
+}
+
+function asExecutors(value: unknown): ExecutorsInfo | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const executors = value as Record<string, unknown>;
+  const rawCount =
+    typeof executors.count === 'number' ? executors.count : Number(executors.count);
+
+  return {
+    role: asString(executors.role),
+    tag: asString(executors.tag),
+    description: asString(executors.description),
+    count: Number.isFinite(rawCount) ? rawCount : 0,
+    labelPrefix: asString(executors.labelPrefix),
+    icon: asString(executors.icon),
   };
 }
 

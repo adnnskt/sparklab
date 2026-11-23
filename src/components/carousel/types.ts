@@ -5,6 +5,22 @@ export type ComparisonCard = {
   barPercent: number;
 };
 
+export type DriverInfo = {
+  role: string;
+  tag: string;
+  description: string;
+  icon: string;
+};
+
+export type ExecutorsInfo = {
+  role: string;
+  tag: string;
+  description: string;
+  count: number;
+  labelPrefix: string;
+  icon: string;
+};
+
 /**
  * Documento da coleção `carrossel` no Firestore.
  * Cada documento é um slide; `layout` decide qual componente o renderiza.
@@ -18,6 +34,8 @@ export type CarouselSlide = {
   badgeText?: string;
   leftCard?: ComparisonCard;
   rightCard?: ComparisonCard;
+  driver?: DriverInfo;
+  executors?: ExecutorsInfo;
 };
 
 export type ComparisonRamSlideData = CarouselSlide & {
@@ -26,4 +44,12 @@ export type ComparisonRamSlideData = CarouselSlide & {
   badgeText: string;
   leftCard: ComparisonCard;
   rightCard: ComparisonCard;
+};
+
+export type ArchitectureMapSlideData = CarouselSlide & {
+  subtitle: string;
+  body: string;
+  badgeText: string;
+  driver: DriverInfo;
+  executors: ExecutorsInfo;
 };
