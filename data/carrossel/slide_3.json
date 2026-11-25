@@ -1,0 +1,32 @@
+{
+  "id": "slide_3",
+  "layout": "partitions_grid",
+  "title": "DataFrames & Partições",
+  "subtitle": "Módulo 0 • Dados",
+  "codeSnippet": "df.filter(df.idade > 18).show()",
+  "partitions": [
+    {
+      "id": "p1",
+      "label": "Partição 1",
+      "rows": 3,
+      "cols": 3,
+      "accent": "#FF6B00"
+    },
+    {
+      "id": "p2",
+      "label": "Partição 2",
+      "rows": 3,
+      "cols": 3,
+      "accent": "#FF8C38"
+    },
+    {
+      "id": "p3",
+      "label": "Partição 3",
+      "rows": 3,
+      "cols": 3,
+      "accent": "#FDBA74"
+    }
+  ],
+  "badgeText": "Cada partição pode rodar em um core/executor",
+  "body": "O DataFrame parece uma tabela única no código, mas por baixo dos panos é fatiado em partições para ganhar paralelismo."
+}
