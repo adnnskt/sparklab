@@ -21,6 +21,14 @@ export type ExecutorsInfo = {
   icon: string;
 };
 
+export type PartitionInfo = {
+  id: string;
+  label: string;
+  rows: number;
+  cols: number;
+  accent: string;
+};
+
 /**
  * Documento da coleção `carrossel` no Firestore.
  * Cada documento é um slide; `layout` decide qual componente o renderiza.
@@ -36,6 +44,8 @@ export type CarouselSlide = {
   rightCard?: ComparisonCard;
   driver?: DriverInfo;
   executors?: ExecutorsInfo;
+  codeSnippet?: string;
+  partitions?: PartitionInfo[];
 };
 
 export type ComparisonRamSlideData = CarouselSlide & {
@@ -52,4 +62,12 @@ export type ArchitectureMapSlideData = CarouselSlide & {
   badgeText: string;
   driver: DriverInfo;
   executors: ExecutorsInfo;
+};
+
+export type PartitionsGridSlideData = CarouselSlide & {
+  subtitle: string;
+  body: string;
+  badgeText: string;
+  codeSnippet: string;
+  partitions: PartitionInfo[];
 };

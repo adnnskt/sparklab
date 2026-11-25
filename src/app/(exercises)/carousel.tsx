@@ -18,6 +18,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { ArchitectureMapSlide } from '@/components/carousel/architecture-map-slide';
 import { ComparisonRamSlide } from '@/components/carousel/comparison-ram-slide';
 import { GenericSlide } from '@/components/carousel/generic-slide';
+import { PartitionsGridSlide } from '@/components/carousel/partitions-grid-slide';
 import type {
   ArchitectureMapSlideData,
   CarouselSlide,
@@ -25,6 +26,8 @@ import type {
   ComparisonRamSlideData,
   DriverInfo,
   ExecutorsInfo,
+  PartitionInfo,
+  PartitionsGridSlideData,
 } from '@/components/carousel/types';
 import { db } from '@/lib/firebase';
 
@@ -226,6 +229,9 @@ function renderSlide(slide: CarouselSlide, width: number) {
   if (isArchitectureMapSlide(slide)) {
     return <ArchitectureMapSlide data={slide} width={width} />;
   }
+  if (isPartitionsGridSlide(slide)) {
+    return <PartitionsGridSlide data={slide} width={width} />;
+  }
   return <GenericSlide data={slide} width={width} />;
 }
 
@@ -251,6 +257,18 @@ function isArchitectureMapSlide(slide: CarouselSlide): slide is ArchitectureMapS
   );
 }
 
+function isPartitionsGridSlide(slide: CarouselSlide): slide is PartitionsGridSlideData {
+  return (
+    slide.layout === 'partitions_grid' &&
+    typeof slide.codeSnippet === 'string' &&
+    Array.isArray(slide.partitions) &&
+    slide.partitions.length > 0 &&
+    typeof slide.subtitle === 'string' &&
+    typeof slide.body === 'string' &&
+    typeof slide.badgeText === 'string'
+  );
+}
+
 function normalizeSlide(id: string, data: Record<string, unknown>): CarouselSlide | null {
   const title = asString(data.title);
   if (!title) return null;
@@ -266,6 +284,8 @@ function normalizeSlide(id: string, data: Record<string, unknown>): CarouselSlid
     rightCard: asCard(data.rightCard),
     driver: asDriver(data.driver),
     executors: asExecutors(data.executors),
+    codeSnippet: asString(data.codeSnippet) || undefined,
+    partitions: asPartitions(data.partitions),
   };
 }
 
@@ -312,6 +332,28 @@ function asExecutors(value: unknown): ExecutorsInfo | undefined {
     labelPrefix: asString(executors.labelPrefix),
     icon: asString(executors.icon),
   };
+}
+
+function asPartitions(value: unknown): PartitionInfo[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  return value
+    .filter(
+      (item): item is Record<string, unknown> =>
+        !!item && typeof item === 'object' && !Array.isArray(item),
+    )
+    .map((item, index) => ({
+      id: asString(item.id, `p${index + 1}`) || `p${index + 1}`,
+      label: asString(item.label, `Partição ${index + 1}`) || `Partição ${index + 1}`,
+      rows: asNumber(item.rows, 3),
+      cols: asNumber(item.cols, 3),
+      accent: asString(item.accent, '#FF6B00') || '#FF6B00',
+    }));
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 // Ordena por sufixo numérico do id (slide_1, slide_2, ... slide_10),
